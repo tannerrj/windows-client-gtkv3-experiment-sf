@@ -435,17 +435,13 @@ static void init_ui() {
     magic_map = GTK_WIDGET(gtk_builder_get_object(window_xml,
                 "drawingarea_magic_map"));
 
-    g_signal_connect((gpointer) magic_map, "expose_event",
+    g_signal_connect((gpointer) magic_map, "draw",
                      G_CALLBACK(on_drawingarea_magic_map_expose_event), NULL);
 
     /* Set up colors before doing the other initialization functions */
     for (i = 0; i < NUM_COLORS; i++) {
         if (!gdk_color_parse(colorname[i], &root_color[i])) {
             fprintf(stderr, "gdk_color_parse failed (%s)\n", colorname[i]);
-        }
-        if (!gdk_colormap_alloc_color(gtk_widget_get_colormap(window_root),
-                                      &root_color[i], FALSE, FALSE)) {
-            fprintf(stderr, "gdk_color_alloc failed\n");
         }
     }
 
@@ -601,7 +597,7 @@ int main(int argc, char *argv[]) {
 void get_window_coord(GtkWidget *win, int *x, int *y, int *wx, int *wy,
         int *w, int *h) {
     /* Position of a window relative to its parent window. */
-    gdk_window_get_geometry(gtk_widget_get_window(win), x, y, w, h, NULL);
+    gdk_window_get_geometry(gtk_widget_get_window(win), x, y, w, h);
     /* Position of the window in root window coordinates. */
     gdk_window_get_origin(gtk_widget_get_window(win), wx, wy);
     *wx -= *x;

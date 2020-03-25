@@ -92,7 +92,7 @@ void map_init(GtkWidget *window_root) {
 
     g_signal_connect(map_drawing_area, "configure_event",
             G_CALLBACK(map_check_resize), NULL);
-    g_signal_connect(map_drawing_area, "expose_event",
+    g_signal_connect(map_drawing_area, "draw",
             G_CALLBACK(map_expose_event), NULL);
 
     // Enable event masks and set callbacks to handle mouse events.

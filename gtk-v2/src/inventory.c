@@ -932,24 +932,7 @@ static gboolean drawingarea_inventory_table_button_press_event(
     return TRUE;
 }
 
-static void draw_inv_table_icon(GdkWindow *dst, const void *image) {
-    cairo_t *cr = gdk_cairo_create(dst);
-
-    gdk_window_clear(dst);
-    gdk_cairo_set_source_pixbuf(cr, (GdkPixbuf *) image, 0, 0);
-    cairo_paint(cr);
-    cairo_destroy(cr);
-}
-
-/**
- *
- * @param widget
- * @param event
- * @param user_data
- * @return TRUE
- */
-static gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
-        GdkEventExpose *event, gpointer user_data) {
+static gboolean drawingarea_inventory_table_expose_event(GtkWidget* widget, cairo_t* cr, gpointer user_data) {
     if (cpl.ob->inv_updated != 0) {
         // Delay drawing until inventory is fully updated. This avoids drawing
         // previously added items that may now be removed, leading to a heap
@@ -963,7 +946,8 @@ static gboolean drawingarea_inventory_table_expose_event(GtkWidget *widget,
      */
     item* tmp = (item*)user_data;
     if (tmp->face) {
-        draw_inv_table_icon(gtk_widget_get_window(widget), pixmaps[tmp->face]->icon_image);
+        gdk_cairo_set_source_pixbuf(cr, (GdkPixbuf*)pixmaps[tmp->face]->icon_image, 0, 0);
+        cairo_paint(cr);
     }
 
     return TRUE;
@@ -1038,10 +1022,7 @@ static void draw_inv_table(int animate) {
                     }
                     tmp->face = animations[tmp->animation_id].faces[tmp->anim_state];
                     tmp->last_anim = 0;
-
-                    draw_inv_table_icon(
-                        gtk_widget_get_window(INV_TABLE_AT(x, y, columns)),
-                        pixmaps[tmp->face]->icon_image);
+                    gtk_widget_queue_draw(INV_TABLE_AT(x, y, columns));
                 }
             }
             /* On animation run, so don't do any of the remaining logic */
@@ -1078,13 +1059,12 @@ static void draw_inv_table(int animate) {
                     G_CALLBACK(drawingarea_inventory_table_button_press_event),
                     tmp);
 
-            g_signal_connect((gpointer) INV_TABLE_AT(x, y, columns), "expose_event",
+            g_signal_connect((gpointer) INV_TABLE_AT(x, y, columns), "draw",
                     G_CALLBACK(drawingarea_inventory_table_expose_event),
                     tmp);
 
             /* Draw the inventory icon image to the table. */
-            draw_inv_table_icon(gtk_widget_get_window(INV_TABLE_AT(x, y, columns)),
-                                pixmaps[tmp->face]->icon_image);
+            gtk_widget_queue_draw(INV_TABLE_AT(x, y, columns));
 
             // Draw an extra indicator if the item is applied.
             if (tmp->applied) {

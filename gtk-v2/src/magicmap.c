@@ -36,7 +36,6 @@ void draw_magic_map() {
     gtk_notebook_set_current_page(GTK_NOTEBOOK(map_notebook), MAGIC_MAP_PAGE);
 
     GdkWindow *window = gtk_widget_get_window(magic_map);
-    gdk_window_clear(window);
 
     cpl.mapxres = gdk_window_get_width(window) / cpl.mmapx;
     cpl.mapyres = gdk_window_get_height(window) / cpl.mmapy;
@@ -58,7 +57,7 @@ void draw_magic_map() {
         cpl.mapyres = cpl.mapxres;
     }
 
-    cairo_t *cr = gdk_cairo_create(GDK_DRAWABLE(window));
+    cairo_t *cr = gdk_cairo_create(window);
     for (int y = 0; y < cpl.mmapy; y++) {
         for (int x = 0; x < cpl.mmapx; x++) {
             guint8 val = cpl.magicmap[y * cpl.mmapx + x];
@@ -76,7 +75,7 @@ void draw_magic_map() {
  */
 void magic_map_flash_pos() {
     GdkWindow *window = gtk_widget_get_window(magic_map);
-    cairo_t *cr = gdk_cairo_create(GDK_DRAWABLE(window));
+    cairo_t *cr = gdk_cairo_create(window);
     gdk_cairo_set_source_color(cr, &root_color[(cpl.showmagic & 2) ? 0 : 1]);
     cairo_rectangle(cr, cpl.mapxres * cpl.pmapx, cpl.mapyres * cpl.pmapy,
                     cpl.mapxres, cpl.mapyres);

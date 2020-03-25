@@ -138,7 +138,7 @@ void on_spell_window_size_allocate(GtkWidget *widget, gpointer user_data)
     /*
      * How wide is the spell window?
      */
-    width = spell_treeview->allocation.width;
+    width = gtk_widget_get_allocated_width(spell_treeview);
     /*
      * How many columns are in the spell window tree view?
      */
