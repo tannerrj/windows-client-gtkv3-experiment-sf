@@ -1,60 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
 <interface>
-  <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy toplevel-contextual -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">1000000</property>
-    <property name="step_increment">1</property>
+    <property name="step-increment">1</property>
   </object>
   <object class="GtkWindow" id="window_root">
-    <property name="width_request">1180</property>
-    <property name="height_request">925</property>
-    <property name="can_focus">False</property>
+    <property name="width-request">1180</property>
+    <property name="height-request">925</property>
+    <property name="can-focus">False</property>
     <property name="title" translatable="yes">Crossfire Client - GTK v2</property>
-    <property name="default_width">1180</property>
-    <property name="default_height">925</property>
+    <property name="default-width">1180</property>
+    <property name="default-height">925</property>
     <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>
-    <signal name="key-release-event" handler="keyrelfunc" object="window_root" swapped="yes"/>
     <signal name="key-press-event" handler="keyfunc" object="window_root" swapped="yes"/>
+    <signal name="key-release-event" handler="keyrelfunc" object="window_root" swapped="yes"/>
     <child>
       <object class="GtkVBox" id="vbox_all">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <child>
           <object class="GtkHBox" id="hbox_menubar">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <child>
               <object class="GtkMenuBar" id="menubar">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkMenuItem" id="menu_file">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">_File</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="file_menu">
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkImageMenuItem" id="disconnect">
                             <property name="label">gtk-disconnect</property>
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="use_underline">True</property>
-                            <property name="use_stock">True</property>
-                            <property name="accel_group">accelgroup1</property>
+                            <property name="can-focus">False</property>
+                            <property name="use-underline">True</property>
+                            <property name="use-stock">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkImageMenuItem" id="quit">
                             <property name="label">gtk-quit</property>
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="use_underline">True</property>
-                            <property name="use_stock">True</property>
-                            <property name="accel_group">accelgroup1</property>
+                            <property name="can-focus">False</property>
+                            <property name="use-underline">True</property>
+                            <property name="use-stock">True</property>
                           </object>
                         </child>
                       </object>
@@ -64,45 +62,44 @@
                 <child>
                   <object class="GtkMenuItem" id="menu_client">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">_Edit</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="client_menu">
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkMenuItem" id="keybindings">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Keybindings</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="msgctrl">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Configure message routing and buffering.</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Configure message routing and buffering.</property>
                             <property name="label" translatable="yes">Message Control</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="save_window_position">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Save Window Position</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkImageMenuItem" id="configure">
                             <property name="label">gtk-preferences</property>
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="use_underline">True</property>
-                            <property name="use_stock">True</property>
-                            <property name="accel_group">accelgroup1</property>
+                            <property name="can-focus">False</property>
+                            <property name="use-underline">True</property>
+                            <property name="use-stock">True</property>
                           </object>
                         </child>
                       </object>
@@ -112,43 +109,42 @@
                 <child>
                   <object class="GtkMenuItem" id="menu_player">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Player</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="player_menu">
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkMenuItem" id="spells">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Spells</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="skills">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Skills</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkSeparatorMenuItem" id="player_menu_sep">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkImageMenuItem" id="quit_character">
                             <property name="label">gtk-delete</property>
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Permenantly delete this character</property>
-                            <property name="use_underline">True</property>
-                            <property name="use_stock">True</property>
-                            <property name="accel_group">accelgroup1</property>
+                            <property name="can-focus">False</property>
+                            <property name="tooltip-text" translatable="yes">Permenantly delete this character</property>
+                            <property name="use-underline">True</property>
+                            <property name="use-stock">True</property>
                           </object>
                         </child>
                       </object>
@@ -158,83 +154,83 @@
                 <child>
                   <object class="GtkMenuItem" id="menu_pickup">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Pickup</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="pickup_menu">
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkCheckMenuItem" id="do_not_pickup">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Don't Pickup</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="stop_before_pickup">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Stop Before Pickup</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="armor">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Armor</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="armor_menu">
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="body_armor">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Body Armor</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="boots">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Boots</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="cloaks">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Cloaks</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="gloves">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Gloves</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="helmets">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Helmets</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="shields">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Shields</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                               </object>
@@ -244,34 +240,34 @@
                         <child>
                           <object class="GtkMenuItem" id="books">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Books</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="books_menu">
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="skillscrolls">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Skillscrolls</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="normal_book_scrolls">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Normal Books &amp; Scrolls</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="spellbooks">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Spellbooks</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                               </object>
@@ -281,122 +277,122 @@
                         <child>
                           <object class="GtkCheckMenuItem" id="drinks">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Drinks</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="food">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Food</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="flesh">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Flesh</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="keys">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Keys</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="magical_items">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Magical Items</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="potions">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Potions</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="valuables">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Valuables (Money &amp; Gems)</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="wands_rods_horns">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Wands/Rods/Horns</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="jewels">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Jewels</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkCheckMenuItem" id="containers">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Containers</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="weapons">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Weapons</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="weapons_menu">
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="all_weapons">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">All Weapons</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="missile_weapons">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Missile Weapons</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="bows">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Bows</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkCheckMenuItem" id="arrows">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Arrows</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                   </object>
                                 </child>
                               </object>
@@ -406,27 +402,27 @@
                         <child>
                           <object class="GtkMenuItem" id="weight/value">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Weight/Value </property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="weight/value_menu">
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_pickup_off">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio Pickup Off</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_5">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 5</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -434,9 +430,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_10">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 10</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -444,9 +440,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_15">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 15</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -454,9 +450,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_20">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 20</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -464,9 +460,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_25">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 25</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -474,9 +470,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_30">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 30</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -484,9 +480,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_35">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 35</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -494,9 +490,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_40">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 40</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -504,9 +500,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_45">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 45</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -514,9 +510,9 @@
                                 <child>
                                   <object class="GtkRadioMenuItem" id="ratio_50">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Ratio &gt;= 50</property>
-                                    <property name="use_underline">True</property>
+                                    <property name="use-underline">True</property>
                                     <property name="active">True</property>
                                     <property name="group">ratio_pickup_off</property>
                                   </object>
@@ -528,9 +524,9 @@
                         <child>
                           <object class="GtkCheckMenuItem" id="not_cursed">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Ignore cursed</property>
-                            <property name="use_underline">True</property>
+                            <property name="use-underline">True</property>
                           </object>
                         </child>
                       </object>
@@ -540,20 +536,19 @@
                 <child>
                   <object class="GtkMenuItem" id="menu_help">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">_Help</property>
-                    <property name="use_underline">True</property>
+                    <property name="use-underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="help_menu">
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <child>
                           <object class="GtkImageMenuItem" id="about">
                             <property name="label">gtk-about</property>
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="use_underline">True</property>
-                            <property name="use_stock">True</property>
-                            <property name="accel_group">accelgroup1</property>
+                            <property name="can-focus">False</property>
+                            <property name="use-underline">True</property>
+                            <property name="use-stock">True</property>
                           </object>
                         </child>
                       </object>
@@ -570,7 +565,7 @@
             <child>
               <object class="GtkLabel" id="fire_on">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -581,7 +576,7 @@
             <child>
               <object class="GtkLabel" id="run_on">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -592,7 +587,7 @@
             <child>
               <object class="GtkLabel" id="filler">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -609,31 +604,31 @@
         </child>
         <child>
           <object class="GtkHPaned" id="hpaned_client">
-            <property name="width_request">1601</property>
+            <property name="width-request">1601</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can-focus">True</property>
             <property name="position">320</property>
             <child>
               <object class="GtkVPaned" id="vpaned_inv_floor">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can-focus">True</property>
                 <property name="position">715</property>
                 <child>
                   <object class="GtkVBox" id="vbox_inv">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkHBox" id="hbox_inv_header">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <property name="homogeneous">True</property>
                         <child>
                           <object class="GtkLabel" id="label_stat_encumbrance_name">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
+                            <property name="can-focus">False</property>
                             <property name="xpad">2</property>
                             <property name="label" translatable="yes">Inventory:</property>
+                            <property name="xalign">0</property>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -644,13 +639,13 @@
                         <child>
                           <object class="GtkHBox" id="hbox_encumbrance">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <child>
                               <object class="GtkLabel" id="label_stat_encumbrance_current">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="xalign">0</property>
+                                <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">0</property>
+                                <property name="xalign">0</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -661,9 +656,9 @@
                             <child>
                               <object class="GtkLabel" id="label_stat_ratio_encumbrance">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="xalign">0</property>
+                                <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">/</property>
+                                <property name="xalign">0</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -674,7 +669,7 @@
                             <child>
                               <object class="GtkLabel" id="label_stat_encumbrance_max">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">0</property>
                               </object>
                               <packing>
@@ -693,7 +688,7 @@
                         <child>
                           <object class="GtkLabel" id="label_count">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Count</property>
                           </object>
                           <packing>
@@ -706,13 +701,11 @@
                         <child>
                           <object class="GtkSpinButton" id="spinbutton_count">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="primary_icon_activatable">False</property>
-                            <property name="secondary_icon_activatable">False</property>
-                            <property name="primary_icon_sensitive">True</property>
-                            <property name="secondary_icon_sensitive">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="primary-icon-activatable">False</property>
+                            <property name="secondary-icon-activatable">False</property>
                             <property name="adjustment">adjustment1</property>
-                            <property name="climb_rate">1</property>
+                            <property name="climb-rate">1</property>
                             <property name="numeric">True</property>
                           </object>
                           <packing>
@@ -731,24 +724,353 @@
                     <child>
                       <object class="GtkNotebook" id="notebook_inv">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <signal name="switch-page" handler="on_notebook_switch_page" swapped="no"/>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow_inv">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">never</property>
+                            <property name="can-focus">True</property>
+                            <property name="hscrollbar-policy">never</property>
                             <child>
                               <object class="GtkViewport" id="viewport_inv">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
+                                <property name="can-focus">True</property>
                                 <child>
                                   <object class="GtkTable" id="inv_table">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="n_rows">11</property>
-                                    <property name="n_columns">10</property>
-                                    <signal name="expose-event" handler="on_inv_table_expose_event" swapped="no"/>
+                                    <property name="can-focus">True</property>
+                                    <property name="n-rows">11</property>
+                                    <property name="n-columns">10</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
                                     <child>
                                       <placeholder/>
                                     </child>
@@ -2078,11 +2400,11 @@
                         <child type="tab">
                           <object class="GtkLabel" id="label_icons">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="label" translatable="yes">Icons</property>
                           </object>
                           <packing>
-                            <property name="tab_fill">False</property>
+                            <property name="tab-fill">False</property>
                           </packing>
                         </child>
                       </object>
@@ -2101,12 +2423,12 @@
                 <child>
                   <object class="GtkVBox" id="vbox_ground">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="border_width">3</property>
+                    <property name="can-focus">False</property>
+                    <property name="border-width">3</property>
                     <child>
                       <object class="GtkLabel" id="label_ground">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can-focus">False</property>
                         <property name="label" translatable="yes">You see:</property>
                       </object>
                       <packing>
@@ -2119,13 +2441,16 @@
                     <child>
                       <object class="GtkScrolledWindow" id="scrolledwindow_ground">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="hscrollbar_policy">never</property>
+                        <property name="can-focus">True</property>
+                        <property name="hscrollbar-policy">never</property>
                         <child>
                           <object class="GtkTreeView" id="treeview_look">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
+                            <property name="can-focus">True</property>
                             <signal name="row-collapsed" handler="list_row_collapse" swapped="no"/>
+                            <child internal-child="selection">
+                              <object class="GtkTreeSelection"/>
+                            </child>
                           </object>
                         </child>
                       </object>
@@ -2150,34 +2475,34 @@
             <child>
               <object class="GtkHPaned" id="hpaned_middle_messages">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
+                <property name="can-focus">True</property>
                 <property name="position">575</property>
                 <child>
                   <object class="GtkVPaned" id="vpaned_middle">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="can-focus">True</property>
                     <property name="position">185</property>
                     <child>
                       <object class="GtkVPaned" id="vpaned_corestats_skills">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
+                        <property name="can-focus">True</property>
                         <property name="position">92</property>
                         <child>
                           <object class="GtkVBox" id="vbox_corestats">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="border_width">2</property>
+                            <property name="can-focus">False</property>
+                            <property name="border-width">2</property>
                             <property name="spacing">2</property>
                             <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkHBox" id="hbox_player">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="spacing">8</property>
                                 <child>
                                   <object class="GtkLabel" id="label_playername">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Player:</property>
                                   </object>
                                   <packing>
@@ -2196,12 +2521,12 @@
                             <child>
                               <object class="GtkHBox" id="hbox_scores">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="spacing">8</property>
                                 <child>
                                   <object class="GtkLabel" id="label_exp">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Score:</property>
                                   </object>
                                   <packing>
@@ -2213,7 +2538,7 @@
                                 <child>
                                   <object class="GtkLabel" id="label_level">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="xpad">2</property>
                                     <property name="label" translatable="yes">Level:</property>
                                   </object>
@@ -2233,16 +2558,16 @@
                             <child>
                               <object class="GtkHBox" id="hbox_stats">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="spacing">8</property>
                                 <child>
                                   <object class="GtkHBox" id="hbox_str">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statstr">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">S</property>
                                       </object>
                                       <packing>
@@ -2254,7 +2579,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_str">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
                                       <packing>
@@ -2273,11 +2598,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_dex">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statdex">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">D</property>
                                       </object>
                                       <packing>
@@ -2289,7 +2614,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_dex">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
                                       <packing>
@@ -2308,11 +2633,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_con">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statcon">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">Co</property>
                                       </object>
                                       <packing>
@@ -2324,7 +2649,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_con">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
                                       <packing>
@@ -2343,11 +2668,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_int">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statint">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">I</property>
                                       </object>
                                       <packing>
@@ -2359,7 +2684,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_int">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">3</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
@@ -2379,11 +2704,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_wis">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statwis">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">W</property>
                                       </object>
                                       <packing>
@@ -2395,7 +2720,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_wis">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
                                       <packing>
@@ -2414,11 +2739,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_pow">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statpow">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">P</property>
                                       </object>
                                       <packing>
@@ -2430,7 +2755,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_pow">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
                                       <packing>
@@ -2449,11 +2774,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_cha">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statcha">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">Ch</property>
                                       </object>
                                       <packing>
@@ -2465,7 +2790,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_cha">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
                                       <packing>
@@ -2491,16 +2816,16 @@
                             <child>
                               <object class="GtkHBox" id="hbox_equipment">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="spacing">8</property>
                                 <child>
                                   <object class="GtkHBox" id="hbox_wc">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statwc">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">Wc:</property>
                                       </object>
                                       <packing>
@@ -2512,7 +2837,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_wc">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
@@ -2532,11 +2857,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_dam">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statdam">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">Dam:</property>
                                       </object>
@@ -2549,7 +2874,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_dam">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
@@ -2569,11 +2894,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_ac">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statac">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">Ac:</property>
                                       </object>
@@ -2586,7 +2911,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_ac">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
@@ -2606,11 +2931,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_armor">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statarmor">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">Armor:</property>
                                       </object>
@@ -2623,7 +2948,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_armor">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
@@ -2650,16 +2975,16 @@
                             <child>
                               <object class="GtkHBox" id="hbox_speeds">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="spacing">8</property>
                                 <child>
                                   <object class="GtkHBox" id="hbox_speed">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statspeed">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">Speed:</property>
                                       </object>
                                       <packing>
@@ -2671,7 +2996,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_speed">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
@@ -2691,11 +3016,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_weaponspeed">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="label_statweapon_speed1">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">(</property>
                                       </object>
                                       <packing>
@@ -2707,7 +3032,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_weapon_speed">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">2</property>
                                         <property name="label" translatable="yes">0</property>
                                       </object>
@@ -2720,7 +3045,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label_statweapon_speed2">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="label" translatable="yes">)</property>
                                       </object>
                                       <packing>
@@ -2746,12 +3071,12 @@
                             <child>
                               <object class="GtkHBox" id="hbox_range">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="spacing">8</property>
                                 <child>
                                   <object class="GtkLabel" id="label_range">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <property name="label" translatable="yes">Skill:</property>
                                   </object>
                                   <packing>
@@ -2776,453 +3101,10 @@
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow1">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="border_width">2</property>
-                            <property name="hscrollbar_policy">never</property>
-                            <property name="vscrollbar_policy">automatic</property>
-                            <property name="shadow_type">in</property>
-                            <child>
-                              <object class="GtkTable" id="table_skills_exp">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="border_width">2</property>
-                                <property name="n_rows">6</property>
-                                <property name="n_columns">6</property>
-                                <property name="homogeneous">True</property>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                                <child>
-                                  <placeholder/>
-                                </child>
-                              </object>
-                            </child>
+                            <property name="can-focus">True</property>
+                            <property name="border-width">2</property>
+                            <property name="hscrollbar-policy">never</property>
+                            <property name="shadow-type">in</property>
                           </object>
                           <packing>
                             <property name="resize">True</property>
@@ -3238,52 +3120,50 @@
                     <child>
                       <object class="GtkVPaned" id="vpaned_maps_barsprotections">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
+                        <property name="can-focus">True</property>
                         <property name="position">530</property>
                         <child>
                           <object class="GtkNotebook" id="map_notebook">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="border_width">2</property>
-                            <property name="show_border">False</property>
+                            <property name="can-focus">True</property>
+                            <property name="border-width">2</property>
+                            <property name="show-border">False</property>
                             <child>
                               <object class="GtkDrawingArea" id="drawingarea_map">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <signal name="button-press-event" handler="on_drawingarea_map_button_press_event" swapped="no"/>
-                                <signal name="expose-event" handler="on_drawingarea_map_expose_event" swapped="no"/>
                               </object>
                             </child>
                             <child type="tab">
                               <object class="GtkLabel" id="label_map">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">Map</property>
                               </object>
                               <packing>
-                                <property name="tab_fill">False</property>
+                                <property name="tab-fill">False</property>
                               </packing>
                             </child>
                             <child>
                               <object class="GtkDrawingArea" id="drawingarea_magic_map">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <signal name="expose-event" handler="on_drawingarea_magic_map_expose_event" swapped="no"/>
+                                <property name="can-focus">False</property>
                               </object>
                               <packing>
                                 <property name="position">1</property>
-                                <property name="tab_fill">False</property>
+                                <property name="tab-fill">False</property>
                               </packing>
                             </child>
                             <child type="tab">
                               <object class="GtkLabel" id="label_magicmap">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">Magic Map</property>
                               </object>
                               <packing>
                                 <property name="position">1</property>
-                                <property name="tab_fill">False</property>
+                                <property name="tab-fill">False</property>
                               </packing>
                             </child>
                           </object>
@@ -3295,147 +3175,147 @@
                         <child>
                           <object class="GtkHPaned" id="hpaned_bars_protections">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
+                            <property name="can-focus">True</property>
                             <property name="position">285</property>
                             <child>
                               <object class="GtkVBox" id="vbox_bars">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkTable" id="table_stat">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="n_rows">5</property>
-                                    <property name="n_columns">2</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="n-rows">5</property>
+                                    <property name="n-columns">2</property>
                                     <child>
                                       <object class="GtkProgressBar" id="progressbar_hp">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="pulse_step">0.10000000149</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="pulse-step">0.10000000149</property>
                                       </object>
                                       <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="right_attach">2</property>
+                                        <property name="left-attach">1</property>
+                                        <property name="right-attach">2</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkProgressBar" id="progressbar_sp">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="pulse_step">0.10000000149</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="pulse-step">0.10000000149</property>
                                       </object>
                                       <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="right_attach">2</property>
-                                        <property name="top_attach">1</property>
-                                        <property name="bottom_attach">2</property>
+                                        <property name="left-attach">1</property>
+                                        <property name="right-attach">2</property>
+                                        <property name="top-attach">1</property>
+                                        <property name="bottom-attach">2</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkProgressBar" id="progressbar_grace">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="pulse_step">0.10000000149</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="pulse-step">0.10000000149</property>
                                       </object>
                                       <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="right_attach">2</property>
-                                        <property name="top_attach">2</property>
-                                        <property name="bottom_attach">3</property>
+                                        <property name="left-attach">1</property>
+                                        <property name="right-attach">2</property>
+                                        <property name="top-attach">2</property>
+                                        <property name="bottom-attach">3</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkProgressBar" id="progressbar_food">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="pulse_step">0.10000000149</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="pulse-step">0.10000000149</property>
                                       </object>
                                       <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="right_attach">2</property>
-                                        <property name="top_attach">3</property>
-                                        <property name="bottom_attach">4</property>
+                                        <property name="left-attach">1</property>
+                                        <property name="right-attach">2</property>
+                                        <property name="top-attach">3</property>
+                                        <property name="bottom-attach">4</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkProgressBar" id="progressbar_exp">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="pulse_step">0.10000000149</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="pulse-step">0.10000000149</property>
                                       </object>
                                       <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="right_attach">2</property>
-                                        <property name="top_attach">4</property>
-                                        <property name="bottom_attach">5</property>
+                                        <property name="left-attach">1</property>
+                                        <property name="right-attach">2</property>
+                                        <property name="top-attach">4</property>
+                                        <property name="bottom-attach">5</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="label_stat_hp">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="xalign">1</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">5</property>
                                         <property name="label" translatable="yes">Health</property>
+                                        <property name="xalign">1</property>
                                       </object>
                                       <packing>
-                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="x-options">GTK_FILL</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="label_stat_sp">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="xalign">1</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">5</property>
                                         <property name="label" translatable="yes">Mana</property>
+                                        <property name="xalign">1</property>
                                       </object>
                                       <packing>
-                                        <property name="top_attach">1</property>
-                                        <property name="bottom_attach">2</property>
-                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="top-attach">1</property>
+                                        <property name="bottom-attach">2</property>
+                                        <property name="x-options">GTK_FILL</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="label_stat_grace">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="xalign">1</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">5</property>
                                         <property name="label" translatable="yes">Grace</property>
+                                        <property name="xalign">1</property>
                                       </object>
                                       <packing>
-                                        <property name="top_attach">2</property>
-                                        <property name="bottom_attach">3</property>
-                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="top-attach">2</property>
+                                        <property name="bottom-attach">3</property>
+                                        <property name="x-options">GTK_FILL</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="label_stat_food">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="xalign">1</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">5</property>
                                         <property name="label" translatable="yes">Food</property>
+                                        <property name="xalign">1</property>
                                       </object>
                                       <packing>
-                                        <property name="top_attach">3</property>
-                                        <property name="bottom_attach">4</property>
-                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="top-attach">3</property>
+                                        <property name="bottom-attach">4</property>
+                                        <property name="x-options">GTK_FILL</property>
                                       </packing>
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="label_stat_exp">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="xalign">1</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xpad">5</property>
                                         <property name="label" translatable="yes">Exp</property>
+                                        <property name="xalign">1</property>
                                       </object>
                                       <packing>
-                                        <property name="top_attach">4</property>
-                                        <property name="bottom_attach">5</property>
-                                        <property name="x_options">GTK_FILL</property>
+                                        <property name="top-attach">4</property>
+                                        <property name="bottom-attach">5</property>
+                                        <property name="x-options">GTK_FILL</property>
                                       </packing>
                                     </child>
                                   </object>
@@ -3448,11 +3328,11 @@
                                 <child>
                                   <object class="GtkHBox" id="hbox_fire_run">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkLabel" id="fire_label">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xalign">0</property>
                                       </object>
                                       <packing>
@@ -3464,7 +3344,7 @@
                                     <child>
                                       <object class="GtkLabel" id="run_label">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can-focus">False</property>
                                         <property name="xalign">0</property>
                                       </object>
                                       <packing>
@@ -3489,23 +3369,130 @@
                             <child>
                               <object class="GtkScrolledWindow" id="scrolledwindow2">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="border_width">2</property>
-                                <property name="hscrollbar_policy">never</property>
-                                <property name="vscrollbar_policy">automatic</property>
-                                <property name="shadow_type">in</property>
+                                <property name="can-focus">True</property>
+                                <property name="border-width">2</property>
+                                <property name="hscrollbar-policy">never</property>
+                                <property name="shadow-type">in</property>
                                 <child>
                                   <object class="GtkViewport" id="viewport1">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
+                                    <property name="can-focus">False</property>
                                     <child>
                                       <object class="GtkTable" id="table_protections">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="border_width">2</property>
-                                        <property name="n_rows">6</property>
-                                        <property name="n_columns">6</property>
+                                        <property name="can-focus">False</property>
+                                        <property name="border-width">2</property>
+                                        <property name="n-rows">6</property>
+                                        <property name="n-columns">6</property>
                                         <property name="homogeneous">True</property>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
+                                        <child>
+                                          <placeholder/>
+                                        </child>
                                         <child>
                                           <placeholder/>
                                         </child>
@@ -3969,38 +3956,38 @@
                 <child>
                   <object class="GtkVBox" id="vbox_messages_commands">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <child>
                       <object class="GtkVPaned" id="vpaned_messages">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
+                        <property name="can-focus">True</property>
                         <property name="position">205</property>
                         <child>
                           <object class="GtkFrame" id="frame_critical_messages">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label_xalign">0</property>
-                            <property name="shadow_type">none</property>
+                            <property name="can-focus">False</property>
+                            <property name="label-xalign">0</property>
+                            <property name="shadow-type">none</property>
                             <child>
                               <object class="GtkAlignment" id="alignment_critical_messages">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkScrolledWindow" id="scrolledwindow_textview2">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="hscrollbar_policy">never</property>
-                                    <property name="shadow_type">in</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="hscrollbar-policy">never</property>
+                                    <property name="shadow-type">in</property>
                                     <child>
                                       <object class="GtkTextView" id="textview_info2">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="pixels_inside_wrap">2</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="pixels-inside-wrap">2</property>
                                         <property name="editable">False</property>
-                                        <property name="left_margin">2</property>
-                                        <property name="right_margin">2</property>
-                                        <property name="cursor_visible">False</property>
-                                        <property name="accepts_tab">False</property>
+                                        <property name="left-margin">2</property>
+                                        <property name="right-margin">2</property>
+                                        <property name="cursor-visible">False</property>
+                                        <property name="accepts-tab">False</property>
                                       </object>
                                     </child>
                                   </object>
@@ -4010,10 +3997,10 @@
                             <child type="label">
                               <object class="GtkLabel" id="label_critical_messages">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="ypad">3</property>
                                 <property name="label" translatable="yes">&lt;b&gt;Critical Messages&lt;/b&gt;</property>
-                                <property name="use_markup">True</property>
+                                <property name="use-markup">True</property>
                               </object>
                             </child>
                           </object>
@@ -4025,29 +4012,29 @@
                         <child>
                           <object class="GtkFrame" id="frame_messages">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label_xalign">0</property>
-                            <property name="shadow_type">none</property>
+                            <property name="can-focus">False</property>
+                            <property name="label-xalign">0</property>
+                            <property name="shadow-type">none</property>
                             <child>
                               <object class="GtkAlignment" id="alignment_messages">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <child>
                                   <object class="GtkScrolledWindow" id="scrolledwindow_textview1">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="hscrollbar_policy">never</property>
-                                    <property name="shadow_type">in</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="hscrollbar-policy">never</property>
+                                    <property name="shadow-type">in</property>
                                     <child>
                                       <object class="GtkTextView" id="textview_info1">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="pixels_inside_wrap">2</property>
+                                        <property name="can-focus">True</property>
+                                        <property name="pixels-inside-wrap">2</property>
                                         <property name="editable">False</property>
-                                        <property name="left_margin">2</property>
-                                        <property name="right_margin">2</property>
-                                        <property name="cursor_visible">False</property>
-                                        <property name="accepts_tab">False</property>
+                                        <property name="left-margin">2</property>
+                                        <property name="right-margin">2</property>
+                                        <property name="cursor-visible">False</property>
+                                        <property name="accepts-tab">False</property>
                                       </object>
                                     </child>
                                   </object>
@@ -4057,10 +4044,10 @@
                             <child type="label">
                               <object class="GtkLabel" id="label_messages">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
+                                <property name="can-focus">False</property>
                                 <property name="ypad">3</property>
                                 <property name="label" translatable="yes">&lt;b&gt;Messages&lt;/b&gt;</property>
-                                <property name="use_markup">True</property>
+                                <property name="use-markup">True</property>
                               </object>
                             </child>
                           </object>
@@ -4079,11 +4066,9 @@
                     <child>
                       <object class="GtkEntry" id="entry_commands">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="primary_icon_activatable">False</property>
-                        <property name="secondary_icon_activatable">False</property>
-                        <property name="primary_icon_sensitive">True</property>
-                        <property name="secondary_icon_sensitive">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="primary-icon-activatable">False</property>
+                        <property name="secondary-icon-activatable">False</property>
                         <signal name="activate" handler="on_entry_commands_activate" swapped="no"/>
                       </object>
                       <packing>

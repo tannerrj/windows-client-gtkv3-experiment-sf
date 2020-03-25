@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.1 -->
 <interface>
-  <requires lib="gtk+" version="2.24"/>
-  <!-- interface-naming-policy project-wide -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkAboutDialog" id="about_window">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -25,12 +25,16 @@ Eric Anderson
 Scott MacFiggen &lt;smurf@CSUA.Berkeley.EDU&gt;
 Kevin Bulgrien &lt;kbulgrien@att.net&gt;
 Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
+    <property name="logo_icon_name">image-missing</property>
     <property name="wrap_license">True</property>
+    <child>
+      <placeholder/>
+    </child>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox1">
+      <object class="GtkBox" id="dialog-vbox1">
         <property name="can_focus">False</property>
         <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area1">
+          <object class="GtkButtonBox" id="dialog-action_area1">
             <property name="can_focus">False</property>
           </object>
           <packing>
@@ -84,6 +88,9 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
     <property name="window_position">center-on-parent</property>
     <property name="deletable">False</property>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <object class="GtkVBox" id="msgctrl_vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -128,9 +135,9 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                   <object class="GtkLabel" id="msgctrl_label_timer">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xalign">1</property>
                     <property name="label" translatable="yes">Timer</property>
                     <property name="justify">right</property>
+                    <property name="xalign">1</property>
                   </object>
                   <packing>
                     <property name="top_attach">1</property>
@@ -150,8 +157,6 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                     <property name="overwrite_mode">True</property>
                     <property name="primary_icon_activatable">False</property>
                     <property name="secondary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">True</property>
-                    <property name="secondary_icon_sensitive">True</property>
                     <property name="adjustment">adjustment13</property>
                     <property name="snap_to_ticks">True</property>
                     <property name="numeric">True</property>
@@ -177,8 +182,6 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                     <property name="overwrite_mode">True</property>
                     <property name="primary_icon_activatable">False</property>
                     <property name="secondary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">True</property>
-                    <property name="secondary_icon_sensitive">True</property>
                     <property name="adjustment">adjustment14</property>
                     <property name="snap_to_ticks">True</property>
                     <property name="numeric">True</property>
@@ -196,9 +199,9 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                   <object class="GtkLabel" id="msgctrl_label_count">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xalign">1</property>
                     <property name="label" translatable="yes">Output Count</property>
                     <property name="justify">right</property>
+                    <property name="xalign">1</property>
                   </object>
                   <packing>
                     <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
@@ -229,9 +232,9 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
               <object class="GtkLabel" id="msgctrl_label_critical">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Critical</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
                 <property name="left_attach">3</property>
@@ -247,9 +250,9 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Choose one or more message panels that should display each message type.</property>
-                <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Messages</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
                 <property name="left_attach">3</property>
@@ -267,9 +270,9 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Choose one or more message panels that should display each message type.</property>
-                <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Messages</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
                 <property name="left_attach">2</property>
@@ -299,10 +302,10 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
               <object class="GtkLabel" id="Suppmsgctrl_label_suppress">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Suppress</property>
                 <property name="use_markup">True</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -318,9 +321,9 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
-                <property name="xalign">0</property>
                 <property name="xpad">2</property>
                 <property name="label" translatable="yes">Duplicates</property>
+                <property name="xalign">0</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -482,6 +485,9 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
     <property name="window_position">center-on-parent</property>
     <property name="deletable">False</property>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <object class="GtkAlignment" id="cc_alignment">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -547,8 +553,6 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                     <property name="invisible_char">●</property>
                     <property name="primary_icon_activatable">False</property>
                     <property name="secondary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">True</property>
-                    <property name="secondary_icon_sensitive">True</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -698,8 +702,6 @@ character move faster as well as attack faster.</property>
                                 <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
-                                <property name="primary_icon_sensitive">True</property>
-                                <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">adjustment6</property>
                               </object>
                               <packing>
@@ -718,8 +720,6 @@ character move faster as well as attack faster.</property>
                                 <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
-                                <property name="primary_icon_sensitive">True</property>
-                                <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">adjustment7</property>
                               </object>
                               <packing>
@@ -739,8 +739,6 @@ character move faster as well as attack faster.</property>
                                 <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
-                                <property name="primary_icon_sensitive">True</property>
-                                <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">adjustment8</property>
                               </object>
                               <packing>
@@ -759,8 +757,6 @@ character move faster as well as attack faster.</property>
                                 <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
-                                <property name="primary_icon_sensitive">True</property>
-                                <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">adjustment9</property>
                               </object>
                               <packing>
@@ -780,8 +776,6 @@ character move faster as well as attack faster.</property>
                                 <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
-                                <property name="primary_icon_sensitive">True</property>
-                                <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">adjustment10</property>
                               </object>
                               <packing>
@@ -800,8 +794,6 @@ character move faster as well as attack faster.</property>
                                 <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
-                                <property name="primary_icon_sensitive">True</property>
-                                <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">adjustment11</property>
                               </object>
                               <packing>
@@ -821,8 +813,6 @@ character move faster as well as attack faster.</property>
                                 <property name="invisible_char">●</property>
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
-                                <property name="primary_icon_sensitive">True</property>
-                                <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">adjustment12</property>
                               </object>
                               <packing>
@@ -1244,8 +1234,6 @@ Attribute</property>
                           <object class="GtkScrolledWindow" id="cc_race_frame_scrolledwindow">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">automatic</property>
-                            <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
                             <child>
                               <object class="GtkTextView" id="textview_rs_desc">
@@ -1298,8 +1286,6 @@ Attribute</property>
                           <object class="GtkScrolledWindow" id="cc_class_frame_scrolledwindow">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">automatic</property>
-                            <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
                             <child>
                               <object class="GtkTextView" id="textview_cs_desc">
@@ -1668,6 +1654,9 @@ Attribute</property>
     <property name="window_position">center-on-parent</property>
     <property name="deletable">False</property>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <object class="GtkAlignment" id="csm_alignment">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -1736,8 +1725,6 @@ Attribute</property>
                   <object class="GtkScrolledWindow" id="csm_scrolledwindow">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
                     <property name="shadow_type">in</property>
                     <child>
                       <object class="GtkTextView" id="textview_starting_map">
@@ -1829,6 +1816,9 @@ Attribute</property>
     <property name="default_height">400</property>
     <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <object class="GtkAlignment" id="alignment7">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -1866,13 +1856,14 @@ Attribute</property>
                               <object class="GtkScrolledWindow" id="metaserver_scrolledwindow">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="hscrollbar_policy">automatic</property>
-                                <property name="vscrollbar_policy">automatic</property>
                                 <child>
                                   <object class="GtkTreeView" id="treeview_metaserver">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <signal name="row-activated" handler="on_treeview_metaserver_row_activated" swapped="no"/>
+                                    <child internal-child="selection">
+                                      <object class="GtkTreeSelection"/>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
@@ -1919,11 +1910,8 @@ Attribute</property>
                             <property name="can_focus">True</property>
                             <property name="invisible_char">●</property>
                             <property name="activates_default">True</property>
-                            <property name="invisible_char_set">True</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="secondary_icon_activatable">False</property>
-                            <property name="primary_icon_sensitive">True</property>
-                            <property name="secondary_icon_sensitive">True</property>
                             <signal name="key-press-event" handler="on_metaserver_text_entry_key_press_event" swapped="no"/>
                           </object>
                           <packing>
@@ -1994,7 +1982,6 @@ Attribute</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="hscrollbar_policy">never</property>
-                            <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
                             <child>
                               <object class="GtkTextView" id="textview_news">
@@ -2025,7 +2012,6 @@ Attribute</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="hscrollbar_policy">never</property>
-                            <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
                             <child>
                               <object class="GtkTextView" id="textview_motd">
@@ -2060,7 +2046,6 @@ Attribute</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="hscrollbar_policy">never</property>
-                            <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
                             <child>
                               <object class="GtkTextView" id="textview_rules_char">
@@ -2122,8 +2107,8 @@ Attribute</property>
                                       <object class="GtkLabel" id="label_account_name">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="xalign">0</property>
                                         <property name="label" translatable="yes">Name</property>
+                                        <property name="xalign">0</property>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
@@ -2138,11 +2123,8 @@ Attribute</property>
                                         <property name="max_length">30</property>
                                         <property name="invisible_char">●</property>
                                         <property name="truncate_multiline">True</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
-                                        <property name="primary_icon_sensitive">True</property>
-                                        <property name="secondary_icon_sensitive">True</property>
                                         <signal name="activate" handler="activate_entry_account_name" swapped="no"/>
                                       </object>
                                       <packing>
@@ -2155,8 +2137,8 @@ Attribute</property>
                                       <object class="GtkLabel" id="label_account_password">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="xalign">0</property>
                                         <property name="label" translatable="yes">Password</property>
+                                        <property name="xalign">0</property>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
@@ -2171,11 +2153,8 @@ Attribute</property>
                                         <property name="visibility">False</property>
                                         <property name="invisible_char">●</property>
                                         <property name="activates_default">True</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
-                                        <property name="primary_icon_sensitive">True</property>
-                                        <property name="secondary_icon_sensitive">True</property>
                                         <signal name="activate" handler="activate_account_password" swapped="no"/>
                                       </object>
                                       <packing>
@@ -2188,11 +2167,11 @@ Attribute</property>
                                       <object class="GtkLabel" id="label_account_login_status">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="xalign">0</property>
                                         <property name="ypad">5</property>
                                         <property name="wrap">True</property>
                                         <property name="wrap_mode">word-char</property>
                                         <property name="width_chars">40</property>
+                                        <property name="xalign">0</property>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
@@ -2286,8 +2265,8 @@ Attribute</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="yalign">0.56000000238418579</property>
-                                        <signal name="pressed" handler="activate_button_create_login" swapped="no"/>
                                         <signal name="activate" handler="activate_button_create_login" swapped="no"/>
+                                        <signal name="pressed" handler="activate_button_create_login" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
@@ -2382,8 +2361,8 @@ Attribute</property>
                                       <object class="GtkLabel" id="label_new_account_name">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="xalign">0</property>
                                         <property name="label" translatable="yes">Name:</property>
+                                        <property name="xalign">0</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -2397,11 +2376,8 @@ Attribute</property>
                                         <property name="can_focus">True</property>
                                         <property name="invisible_char">●</property>
                                         <property name="truncate_multiline">True</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
-                                        <property name="primary_icon_sensitive">True</property>
-                                        <property name="secondary_icon_sensitive">True</property>
                                         <signal name="activate" handler="activate_new_account_name" swapped="no"/>
                                       </object>
                                       <packing>
@@ -2414,8 +2390,8 @@ Attribute</property>
                                       <object class="GtkLabel" id="label_new_account_password">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="xalign">0</property>
                                         <property name="label" translatable="yes">Enter Password:</property>
+                                        <property name="xalign">0</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -2429,11 +2405,8 @@ Attribute</property>
                                         <property name="can_focus">True</property>
                                         <property name="visibility">False</property>
                                         <property name="invisible_char">●</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
-                                        <property name="primary_icon_sensitive">True</property>
-                                        <property name="secondary_icon_sensitive">True</property>
                                         <signal name="activate" handler="activate_new_account_password" swapped="no"/>
                                       </object>
                                       <packing>
@@ -2446,8 +2419,8 @@ Attribute</property>
                                       <object class="GtkLabel" id="label_new_confirm_password">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="xalign">0</property>
                                         <property name="label" translatable="yes">Confirm Password:</property>
+                                        <property name="xalign">0</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -2461,11 +2434,8 @@ Attribute</property>
                                         <property name="can_focus">True</property>
                                         <property name="visibility">False</property>
                                         <property name="invisible_char">●</property>
-                                        <property name="invisible_char_set">True</property>
                                         <property name="primary_icon_activatable">False</property>
                                         <property name="secondary_icon_activatable">False</property>
-                                        <property name="primary_icon_sensitive">True</property>
-                                        <property name="secondary_icon_sensitive">True</property>
                                         <signal name="activate" handler="activate_new_confirm_password" swapped="no"/>
                                       </object>
                                       <packing>
@@ -2523,7 +2493,6 @@ Attribute</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="hscrollbar_policy">never</property>
-                                    <property name="vscrollbar_policy">automatic</property>
                                     <child>
                                       <object class="GtkTextView" id="textview_rules_account">
                                         <property name="visible">True</property>
@@ -2573,8 +2542,8 @@ Attribute</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="use_stock">True</property>
-                            <signal name="pressed" handler="activate_new_cancel" swapped="no"/>
                             <signal name="activate" handler="activate_new_cancel" swapped="no"/>
+                            <signal name="pressed" handler="activate_new_cancel" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -2588,8 +2557,8 @@ Attribute</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <signal name="pressed" handler="activate_new_create_account" swapped="no"/>
                             <signal name="activate" handler="activate_new_create_account" swapped="no"/>
+                            <signal name="pressed" handler="activate_new_create_account" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -2641,8 +2610,6 @@ Attribute</property>
                               <object class="GtkScrolledWindow" id="choose_char_scrolledwindow">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="hscrollbar_policy">automatic</property>
-                                <property name="vscrollbar_policy">automatic</property>
                                 <property name="shadow_type">in</property>
                                 <child>
                                   <object class="GtkTreeView" id="treeview_choose_character">
@@ -2650,6 +2617,9 @@ Attribute</property>
                                     <property name="height_request">250</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <child internal-child="selection">
+                                      <object class="GtkTreeSelection"/>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
@@ -2698,8 +2668,8 @@ Attribute</property>
                             <property name="receives_default">True</property>
                             <property name="tooltip_text" translatable="yes">Create a new character</property>
                             <property name="use_stock">True</property>
-                            <signal name="pressed" handler="activate_create_character" swapped="no"/>
                             <signal name="activate" handler="activate_create_character" swapped="no"/>
+                            <signal name="pressed" handler="activate_create_character" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -2714,8 +2684,8 @@ Attribute</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="tooltip_text" translatable="yes">Link a character to this account</property>
-                            <signal name="pressed" handler="activate_add_character" swapped="no"/>
                             <signal name="activate" handler="activate_add_character" swapped="no"/>
+                            <signal name="pressed" handler="activate_add_character" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -2730,8 +2700,8 @@ Attribute</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="tooltip_text" translatable="yes">Change account password</property>
-                            <signal name="pressed" handler="activate_change_password" swapped="no"/>
                             <signal name="activate" handler="activate_change_password" swapped="no"/>
+                            <signal name="pressed" handler="activate_change_password" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -2746,8 +2716,8 @@ Attribute</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="use_stock">True</property>
-                            <signal name="pressed" handler="activate_play_character" swapped="no"/>
                             <signal name="activate" handler="activate_play_character" swapped="no"/>
+                            <signal name="pressed" handler="activate_play_character" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -2830,8 +2800,8 @@ Attribute</property>
                                   <object class="GtkLabel" id="label_current_password">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="xalign">0</property>
                                     <property name="label" translatable="yes">Current password:</property>
+                                    <property name="xalign">0</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2846,11 +2816,8 @@ Attribute</property>
                                     <property name="visibility">False</property>
                                     <property name="invisible_char">●</property>
                                     <property name="truncate_multiline">True</property>
-                                    <property name="invisible_char_set">True</property>
                                     <property name="primary_icon_activatable">False</property>
                                     <property name="secondary_icon_activatable">False</property>
-                                    <property name="primary_icon_sensitive">True</property>
-                                    <property name="secondary_icon_sensitive">True</property>
                                     <signal name="activate" handler="activate_password_current" swapped="no"/>
                                   </object>
                                   <packing>
@@ -2863,8 +2830,8 @@ Attribute</property>
                                   <object class="GtkLabel" id="label_account_password_new">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="xalign">0</property>
                                     <property name="label" translatable="yes">Enter new password:</property>
+                                    <property name="xalign">0</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2878,11 +2845,8 @@ Attribute</property>
                                     <property name="can_focus">True</property>
                                     <property name="visibility">False</property>
                                     <property name="invisible_char">●</property>
-                                    <property name="invisible_char_set">True</property>
                                     <property name="primary_icon_activatable">False</property>
                                     <property name="secondary_icon_activatable">False</property>
-                                    <property name="primary_icon_sensitive">True</property>
-                                    <property name="secondary_icon_sensitive">True</property>
                                     <signal name="activate" handler="activate_new_password" swapped="no"/>
                                   </object>
                                   <packing>
@@ -2895,8 +2859,8 @@ Attribute</property>
                                   <object class="GtkLabel" id="label_account_password_confirm">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="xalign">0</property>
                                     <property name="label" translatable="yes">Confirm Password:</property>
+                                    <property name="xalign">0</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -2910,11 +2874,8 @@ Attribute</property>
                                     <property name="can_focus">True</property>
                                     <property name="visibility">False</property>
                                     <property name="invisible_char">●</property>
-                                    <property name="invisible_char_set">True</property>
                                     <property name="primary_icon_activatable">False</property>
                                     <property name="secondary_icon_activatable">False</property>
-                                    <property name="primary_icon_sensitive">True</property>
-                                    <property name="secondary_icon_sensitive">True</property>
                                     <signal name="activate" handler="activate_new_password_confirm" swapped="no"/>
                                   </object>
                                   <packing>
@@ -2977,8 +2938,8 @@ Attribute</property>
                             <property name="receives_default">True</property>
                             <property name="use_stock">True</property>
                             <property name="image_position">right</property>
-                            <signal name="pressed" handler="activate_account_password_cancel" swapped="no"/>
                             <signal name="activate" handler="activate_account_password_cancel" swapped="no"/>
+                            <signal name="pressed" handler="activate_account_password_cancel" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -2993,8 +2954,8 @@ Attribute</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="use_stock">True</property>
-                            <signal name="pressed" handler="activate_account_password_confirm" swapped="no"/>
                             <signal name="activate" handler="activate_account_password_confirm" swapped="no"/>
+                            <signal name="pressed" handler="activate_account_password_confirm" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -3079,9 +3040,9 @@ Attribute</property>
                                               <object class="GtkLabel" id="label_character_name">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="label" translatable="yes">Name:</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">1</property>
-                                                <property name="label" translatable="yes">Name:</property>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -3095,11 +3056,8 @@ Attribute</property>
                                                 <property name="can_focus">True</property>
                                                 <property name="invisible_char">●</property>
                                                 <property name="truncate_multiline">True</property>
-                                                <property name="invisible_char_set">True</property>
                                                 <property name="primary_icon_activatable">False</property>
                                                 <property name="secondary_icon_activatable">False</property>
-                                                <property name="primary_icon_sensitive">True</property>
-                                                <property name="secondary_icon_sensitive">True</property>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -3111,9 +3069,9 @@ Attribute</property>
                                               <object class="GtkLabel" id="label_character_password">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="label" translatable="yes">Password:</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">1</property>
-                                                <property name="label" translatable="yes">Password:</property>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -3127,11 +3085,8 @@ Attribute</property>
                                                 <property name="can_focus">True</property>
                                                 <property name="visibility">False</property>
                                                 <property name="invisible_char">●</property>
-                                                <property name="invisible_char_set">True</property>
                                                 <property name="primary_icon_activatable">False</property>
                                                 <property name="secondary_icon_activatable">False</property>
-                                                <property name="primary_icon_sensitive">True</property>
-                                                <property name="secondary_icon_sensitive">True</property>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -3175,9 +3130,9 @@ Enter a character name and password to add this account. The character must alre
                                       <object class="GtkLabel" id="label_add_status">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="xalign">0</property>
                                         <property name="label" translatable="yes">
 </property>
+                                        <property name="xalign">0</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -3344,6 +3299,9 @@ Enter a character name and password to add this account. The character must alre
     <property name="window_position">center-on-parent</property>
     <property name="deletable">False</property>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <object class="GtkVBox" id="keybinding_vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -3356,6 +3314,9 @@ Enter a character name and password to add this account. The character must alre
               <object class="GtkTreeView" id="keybinding_treeview">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
               </object>
             </child>
           </object>
@@ -3566,8 +3527,6 @@ Enter a character name and password to add this account. The character must alre
                         <property name="invisible_char">●</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
-                        <property name="primary_icon_sensitive">True</property>
-                        <property name="secondary_icon_sensitive">True</property>
                         <signal name="key-press-event" handler="on_keybinding_entry_key_key_press_event" swapped="no"/>
                       </object>
                       <packing>
@@ -3596,8 +3555,6 @@ Enter a character name and password to add this account. The character must alre
                         <property name="invisible_char">●</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
-                        <property name="primary_icon_sensitive">True</property>
-                        <property name="secondary_icon_sensitive">True</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -3783,13 +3740,16 @@ Enter a character name and password to add this account. The character must alre
     <property name="icon_name">preferences-desktop</property>
     <property name="type_hint">dialog</property>
     <property name="deletable">False</property>
+    <child>
+      <placeholder/>
+    </child>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox2">
+      <object class="GtkBox" id="dialog-vbox2">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area2">
+          <object class="GtkButtonBox" id="dialog-action_area2">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
@@ -4064,7 +4024,7 @@ Enter a character name and password to add this account. The character must alre
                           <object class="GtkComboBox" id="config_combobox_lighting">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="extension_events">all</property>
+                            <property name="tooltip_text" translatable="yes">This setting only applies when rendering with SDL. OpenGL uses its own lighting method, and Pixmap always uses per-tile lighting.</property>
                             <property name="model">sdl_lighting_liststore</property>
                             <child>
                               <object class="GtkCellRendererText" id="renderer1"/>
@@ -4256,6 +4216,9 @@ Enter a character name and password to add this account. The character must alre
     <property name="default_height">600</property>
     <property name="deletable">False</property>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <object class="GtkVBox" id="skill_vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -4268,6 +4231,9 @@ Enter a character name and password to add this account. The character must alre
               <object class="GtkTreeView" id="skill_treeview">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
               </object>
             </child>
           </object>
@@ -4360,6 +4326,9 @@ Enter a character name and password to add this account. The character must alre
     <property name="default_height">600</property>
     <property name="deletable">False</property>
     <child>
+      <placeholder/>
+    </child>
+    <child>
       <object class="GtkVBox" id="spell_vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -4373,6 +4342,9 @@ Enter a character name and password to add this account. The character must alre
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <signal name="row-activated" handler="on_spell_treeview_row_activated" swapped="no"/>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
               </object>
             </child>
           </object>
@@ -4484,8 +4456,6 @@ Enter a character name and password to add this account. The character must alre
                 <property name="can_focus">True</property>
                 <property name="primary_icon_activatable">False</property>
                 <property name="secondary_icon_activatable">False</property>
-                <property name="primary_icon_sensitive">True</property>
-                <property name="secondary_icon_sensitive">True</property>
               </object>
               <packing>
                 <property name="expand">True</property>
