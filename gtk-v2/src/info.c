@@ -314,33 +314,19 @@ extern bool arm_mapedit;
  * @param style      Style name to get values from.
  * @param base_style Base style for the widget to compare against.
  */
-void set_text_tag_from_style(GtkTextTag *tag, GtkStyle *style, const GtkStyle * const base_style)
-{
-    g_object_set(tag, "foreground-set", FALSE, NULL);
-    g_object_set(tag, "background-set", FALSE, NULL);
-    g_object_set(tag, "font-desc", NULL, NULL);
-
-    if (memcmp(
-                &style->fg[GTK_STATE_NORMAL],
-                &base_style->fg[GTK_STATE_NORMAL],
-                sizeof(GdkColor)))
-
-    {
-        g_object_set(tag, "foreground-gdk", &style->fg[GTK_STATE_NORMAL], NULL);
+void set_text_tag_from_style(GtkTextTag *tag, GtkStyleContext *sc, GtkStyleContext *base_style) {
+    GdkRGBA fg, bg, bfg, bbg;
+    gtk_style_context_get_color(sc, GTK_STATE_FLAG_NORMAL, &fg);
+    gtk_style_context_get_color(base_style, GTK_STATE_FLAG_NORMAL, &bfg);
+    gtk_style_context_get_background_color(sc, GTK_STATE_FLAG_NORMAL, &bg);
+    gtk_style_context_get_background_color(base_style, GTK_STATE_FLAG_NORMAL, &bbg);
+    if (!gdk_rgba_equal(&fg, &bfg)) {
+        g_object_set(tag, "foreground-rgba", &fg, NULL);
     }
-
-    if (memcmp(
-                &style->bg[GTK_STATE_NORMAL],
-                &base_style->bg[GTK_STATE_NORMAL],
-                sizeof(GdkColor)))
-
-    {
-        g_object_set(tag, "background-gdk", &style->bg[GTK_STATE_NORMAL], NULL);
+    if (!gdk_rgba_equal(&bg, &bbg)) {
+        g_object_set(tag, "background-rgba", &bg, NULL);
     }
-
-    if (style->font_desc != base_style->font_desc) {
-        g_object_set(tag, "font-desc", style->font_desc, NULL);
-    }
+    //g_object_set(tag, "font-desc", style->font_desc, NULL);
 }
 
 /**
@@ -406,84 +392,40 @@ void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf)
  * @param pane       Message panel number to update.
  * @param base_style Base style if retrieved - may be null.
  */
-void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style)
-{
+void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *_base_style) {
     int i;
     char    style_name[MAX_BUF];
-    GtkStyle    *tmp_style;
 
-    if (base_style) {
-        /*
-         * Old message/color support.
-         */
-        for (i = 0; i < NUM_COLORS; i++) {
-            snprintf(style_name, MAX_BUF, "info_%s", usercolorname[i]);
+    GtkStyleContext *base_style = gtk_widget_get_style_context(pane->textview);
+    GtkStyleContext *tmp_style = gtk_widget_get_style_context(pane->textview);
+    /*
+     * Old message/color support.
+     */
+    for (i = 0; i < NUM_COLORS; i++) {
+        snprintf(style_name, MAX_BUF, "info_%s", usercolorname[i]);
+        gtk_style_context_save(tmp_style);
+        gtk_style_context_add_class(tmp_style, style_name);
 
-            tmp_style =
-                gtk_rc_get_style_by_paths(
-                    gtk_settings_get_default(), NULL, style_name, G_TYPE_NONE);
-
-            if (tmp_style) {
-                if (!pane->color_tags[i]) {
-                    pane->color_tags[i] =
-                        gtk_text_buffer_create_tag(
-                            pane->textbuffer, NULL, NULL);
-                }
-                set_text_tag_from_style(
-                    pane->color_tags[i], tmp_style, base_style);
-            } else {
-                if (pane->color_tags[i]) {
-                    gtk_text_tag_table_remove(
-                        gtk_text_buffer_get_tag_table(
-                            pane->textbuffer), pane->color_tags[i]);
-                    pane->color_tags[i] = NULL;
-                }
-            }
+        if (!pane->color_tags[i]) {
+            pane->color_tags[i] =
+                gtk_text_buffer_create_tag(
+                    pane->textbuffer, NULL, NULL);
         }
+        set_text_tag_from_style(pane->color_tags[i], tmp_style, base_style);
+        gtk_style_context_restore(tmp_style);
+    }
 
-        /* Font type support */
-        for (i = 0; i < NUM_FONTS; i++) {
-            tmp_style =
-                gtk_rc_get_style_by_paths(
-                    gtk_settings_get_default(),
-                    NULL, font_style_names[i], G_TYPE_NONE);
-
-            if (tmp_style) {
-                if (!pane->font_tags[i]) {
-                    pane->font_tags[i] =
-                        gtk_text_buffer_create_tag(
-                            pane->textbuffer, NULL, NULL);
-                }
-                set_text_tag_from_style(
-                    pane->font_tags[i], tmp_style, base_style);
-            } else {
-                if (pane->font_tags[i]) {
-                    gtk_text_tag_table_remove(
-                        gtk_text_buffer_get_tag_table(pane->textbuffer),
-                        pane->font_tags[i]);
-                    pane->font_tags[i] = NULL;
-                }
-            }
+    /* Font type support */
+    for (i = 0; i < NUM_FONTS; i++) {
+        gtk_style_context_save(tmp_style);
+        gtk_style_context_add_class(tmp_style, font_style_names[i]);
+        if (!pane->font_tags[i]) {
+            pane->font_tags[i] =
+                gtk_text_buffer_create_tag(
+                    pane->textbuffer, NULL, NULL);
         }
-    } else {
-
-        for (i = 0; i < NUM_COLORS; i++) {
-            if (pane->color_tags[i]) {
-                gtk_text_tag_table_remove(
-                    gtk_text_buffer_get_tag_table(
-                        pane->textbuffer), pane->color_tags[i]);
-                pane->color_tags[i] = NULL;
-            }
-        }
-        /* Font type support */
-        for (i = 0; i < NUM_FONTS; i++) {
-            if (pane->font_tags[i]) {
-                gtk_text_tag_table_remove(
-                    gtk_text_buffer_get_tag_table(
-                        pane->textbuffer), pane->font_tags[i]);
-                pane->font_tags[i] = NULL;
-            }
-        }
+        set_text_tag_from_style(pane->font_tags[i], tmp_style, base_style);
+        gtk_style_context_restore(tmp_style);
     }
 }
 
@@ -500,7 +442,6 @@ void info_get_styles(void)
 {
     unsigned int i, j;
     static int has_init=0;
-    GtkStyle    *tmp_style, *base_style;
 
     if (!has_init) {
         /*
@@ -525,101 +466,48 @@ void info_get_styles(void)
         }
         has_init = 1;
     }
-    base_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL,
-                                           "info_default", G_TYPE_NONE);
-    if (!base_style) {
-        LOG(LOG_INFO, "info.c::info_get_styles",
-            "Unable to find base style info_default"
-            " - will not process most info tag styles!");
-    }
 
     has_style = 0;
 
+    GtkWidgetPath *path = gtk_widget_path_new();
+    gtk_widget_path_append_type(path, GTK_TYPE_TEXT_VIEW);
+
+    GtkStyleContext *base_style = gtk_style_context_new();
+    gtk_style_context_set_path(base_style, path);
+    gtk_style_context_add_class(base_style, "base_text");
+
     /*
-     * If we don't have a base style tag, we can't process these other tags,
-     * as we need to be able to do a difference, and doing a difference from
-     * nothing (meaning, taking everything in style) still doesn't work really
-     * well.
+     * This processes the type/subtype styles.  We look up the names in
+     * the array to find what name goes to what number.
      */
-    if (base_style) {
-        /*
-         * This processes the type/subtype styles.  We look up the names in
-         * the array to find what name goes to what number.
-         */
-        for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
-            int type, subtype;
+    for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
+        int type, subtype;
 
-            char style_name[MAX_BUF];
-            snprintf(style_name, sizeof(style_name),
-                     "msg_%s", msg_type_names[i].style_name);
-            type =  msg_type_names[i].type;
-            subtype = msg_type_names[i].subtype;
+        char style_name[MAX_BUF];
+        snprintf(style_name, sizeof(style_name), "msg_%s", msg_type_names[i].style_name);
+        type = msg_type_names[i].type;
+        subtype = msg_type_names[i].subtype;
 
-            tmp_style =
-                gtk_rc_get_style_by_paths(
-                    gtk_settings_get_default(), NULL, style_name, G_TYPE_NONE);
-
-            for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-                /*
-                 * If we have a style for this, update the tag that goes along
-                 * with this.  If we don't have a tag for this style, create
-                 * it.
-                 */
-                if (tmp_style) {
-                    if (!info_pane[j].msg_type_tags[type][subtype]) {
-                        info_pane[j].msg_type_tags[type][subtype] =
-                            gtk_text_buffer_create_tag(
-                                info_pane[j].textbuffer, NULL, NULL);
-                    }
-                    set_text_tag_from_style(
-                        info_pane[j].msg_type_tags[type][subtype],
-                        tmp_style, base_style);
-                    has_style = 1;
-                } else {
-                    /*
-                     * No setting for this type/subtype, so remove tag if
-                     * there is one.
-                     */
-                    if (info_pane[j].msg_type_tags[type][subtype]) {
-                        gtk_text_tag_table_remove(
-                            gtk_text_buffer_get_tag_table(
-                                info_pane[j].textbuffer),
-                            info_pane[j].msg_type_tags[type][subtype]);
-                        info_pane[j].msg_type_tags[type][subtype] = NULL;
-                    }
-                }
-            }
-        }
         for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-            add_style_to_textbuffer(&info_pane[j], base_style);
-        }
-    } else {
-        /*
-         * There is no base style - this should not normally be the case with
-         * any real setting files, but certainly can be the case if the user
-         * selected the 'None' setting.  So in this case, we just free all the
-         * text tags.
-         */
-        has_style = 0;
-        for (i = 0; i < sizeof(msg_type_names) / sizeof(Msg_Type_Names); i++) {
-            int type, subtype;
+            GtkStyleContext *sc = gtk_style_context_new();
+            gtk_style_context_set_path(sc, path);
+            gtk_style_context_add_class(sc, style_name);
 
-            type = msg_type_names[i].type;
-            subtype = msg_type_names[i].subtype;
-
-            for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-                if (info_pane[j].msg_type_tags[type][subtype]) {
-                    gtk_text_tag_table_remove(
-                        gtk_text_buffer_get_tag_table(
-                            info_pane[j].textbuffer),
-                        info_pane[j].msg_type_tags[type][subtype]);
-                    info_pane[j].msg_type_tags[type][subtype] = NULL;
-                }
+            if (!info_pane[j].msg_type_tags[type][subtype]) {
+                info_pane[j].msg_type_tags[type][subtype] =
+                    gtk_text_buffer_create_tag(info_pane[j].textbuffer, NULL, NULL);
             }
+            set_text_tag_from_style(info_pane[j].msg_type_tags[type][subtype], sc, base_style);
+            has_style = 1;
+            g_object_unref(sc);
         }
-        for (j = 0; j < NUM_TEXT_VIEWS; j++) {
-            add_style_to_textbuffer(&info_pane[j], NULL);
-        }
+    }
+
+    gtk_widget_path_free(path);
+    g_object_unref(base_style);
+
+    for (j = 0; j < NUM_TEXT_VIEWS; j++) {
+        add_style_to_textbuffer(&info_pane[j], NULL);
     }
 }
 

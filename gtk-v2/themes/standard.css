@@ -1,0 +1,311 @@
+/*
+The first set of info_<color> are how to display messages that come
+as a certain color from the server.  Eg, the server says 'draw this in
+black', and this determines how we actually draw it.  For example,
+when using a black background, you really don't want the text color
+to be black.
+
+Note that anything not set here (fg, bg, font) will use default
+values as bound to the global widget (*), so you don't need to
+specify all the values in each classification. If you don't want
+different colored text, just disable all of these.
+The values here match the traditional values used.
+*/
+
+.black_text {
+    color: black;
+}
+
+.white_text {
+    color: black;
+    font-family: bold;
+}
+
+.info_darkblue {
+    color: navy;
+}
+
+.info_red {
+    color: red;
+}
+
+.info_orange {
+    color: orange;
+}
+
+.info_lightblue {
+    color: dodgerblue;
+}
+
+.info_darkorange {
+    color: darkorange2;
+}
+
+.info_green {
+    color: seagreen;
+}
+
+.info_darkgreen {
+    color: darkseagreen;
+}
+
+.info_grey {
+    color: grey50;
+}
+
+.info_brown {
+    color: sienna;
+}
+
+.info_yellow {
+    color: gold;
+}
+
+.info_tan {
+    color: khaki;
+}
+
+.info_lightblue {
+    color: dodgerblue;
+}
+
+/*
+# these msg_.. values determine how to draw output of the
+# different message types - see the newclient.h and msgtypes.h file for all
+# the types/subytpes.  With this, you can set different output styles
+# for all of the different message types.
+#
+# A few notes:
+#
+# 1) it is the widget_class line that binds the the style to the name that
+# the client uses to look it up.
+# Thus, you can do something like:
+#
+# style "red" ....
+# widget_class "msg_victim_was_pushed" style "red"
+# widget_class "msg_communication_say" style "red"
+#
+# In this way, you don't need to have a style for every msg type - a more
+# likely scenario is a modest number of styles, but then binding these
+# to the different widget names as how you want that widget to be
+# drawn.  The <color>_text entries used above can be re-used
+# for the msg types here.
+#
+# 2) Beyond normal style inheritence rules, the client itself is coded
+# to do some - just in that way, you don't need to list every msg
+# type here.  For example:
+#
+# widget_class "msg_book" style "seagreen"
+#
+# will result in every message of the BOOK class to be drawn in green
+# text.  If you then add the line:
+#
+# widget_class "msg_book_clasp_1" style "red"
+#
+# messages of type BOOK, subtype CLASP_1 will be drawn in red, with all
+# the other BOOK message types being drawn in green.
+#
+# Note that this works on a type/subtype level, not a # string level.  Thus,
+# you can not do:
+#
+# widget_class "msg_book_clasp" style "red"
+#
+# and have it work, as the "msg_book_clasp" by itself isn't a valid name.
+# Basically, you can bind it to the overall type (which covers all the
+# subtypes), or to specific type/subtypes. The common/msgtypes.h file
+# contains  all the valid names (without the msg_ prefix) that are valid.
+#
+# 3) Even with the new message types, the server still sends what color
+# it thinks they should be drawn (this is basically for older clients
+# predating extended text support).  If you do not specify _ANY_ styles for the
+# message types here, the client will use that color tag for what color
+# to draw the text with, as set with the info_<color> section above.
+# However, if even a single msg_ style is set, then the client will not
+# use those values - the presumption being that if a msg_ style
+# is set, the user knows what they are doing, and any that are not
+# set they want in default color/style.
+#
+# This is because there really isn't any way
+# for the client to know if it is intentional on the part of the user
+# that they want to use the default styles for the widgets or if it
+# should be using that color information - this is especially true
+# given the inheritence described in point #2 above.
+#
+
+
+# The entries below try to match what color the server says
+# to use for these - basically, to keep compatibility without
+# having to use the passed in color value - in that way,
+# additions can be made and the expected appearance of messages
+# will remain.
+# Given this is compatible type messages, we re-use
+# the color_text styles above.  Note that in some cases,
+# the same type of message used different colors depending
+# on where in the code it was called.  I've tried to use here
+# whatever was used the most for a particular message, but
+# I also took into account the message and other related messages
+# so the color for good vs bad effects are different, etc.  To
+# some extent, the idea that red messages are bad is put in place
+# here, with blue being good.
+#
+# Note - these should really be re-done, as the current color
+# scheme often makes no sense (same style for both a level
+# gain and loss?) But this base file is more as a sample
+# and also act like things have in the past.
+#
+# Some colors, like lightgreen, gold & tan are not used by
+# any message types right now.  And some others are used
+# in only a few places, like greytext, browntext
+#
+# these are in type/subtype order, to match msgtypes.h
+*/
+
+.msg_book {
+    color: navy;
+}
+
+.msg_sign {
+    color: navy;
+}
+
+.msg_dialog_npc {
+    color: navy;
+}
+.msg_dialog_magic_ear {
+    color: navy;
+}
+
+.msg_motd {
+    color: seagreen;
+}
+
+.msg_admin_rules {
+    color: seagreen;
+}
+.msg_admin_news {
+    color: seagreen;
+}
+.msg_admin_player {
+    color: darkorange2;
+}
+.msg_admin_dm {
+    color: red;
+}
+
+.msg_command_quests {
+    color: white;
+}
+.msg_command_dm {
+    color: red;
+}
+.msg_command_newplayer {
+    color: dodgerblue;
+}
+
+.msg_attribute_protection_gain {
+    color: dodgerblue;
+}
+.msg_attribute_protection_loss {
+    color: red;
+}
+.msg_attribute_bad_effect_start {
+    color: red;
+}
+.msg_attribute_level_gain {
+    color: dodgerblue;
+}
+.msg_attribute_level_loss {
+    color: red;
+}
+.msg_attribute_race {
+    color: dodgerblue;
+}
+.msg_attribute_god {
+    color: navy;
+}
+
+.msg_skill_pray {
+    color: white;
+}
+.msg_skill_error {
+    color: red;
+}
+
+.msg_apply_success {
+    color: navy;
+}
+.msg_apply_cursed {
+    color: navy;
+}
+.msg_apply_trap {
+    color: navy;
+}
+
+.msg_attack_did_hit {
+    color: red;
+}
+.msg_attack_nokey {
+    color: navy;
+}
+
+.msg_communication_random {
+    color: white;
+}
+.msg_communication_say {
+    color: white;
+}
+.msg_communication_me {
+    color: dodgerblue;
+}
+.msg_communication_tell {
+    color: orange;
+}
+.msg_communication_emote {
+    color: white;
+}
+.msg_communication_party {
+    color: white;
+}
+.msg_communication_shout {
+    color: red;
+}
+.msg_communication_chat {
+    color: dodgerblue;
+}
+
+.msg_spell_failure {
+    color: grey50;
+}
+.msg_spell_success {
+    color: navy;
+}
+.msg_spell_error {
+    color: navy;
+}
+.msg_spell_target {
+    color: orange;
+}
+
+.msg_item_remove {
+    color: sienna;
+}
+.msg_item_add {
+    color: dodgerblue;
+}
+.msg_item_info {
+    color: sienna;
+}
+
+.msg_misc {
+    color: navy;
+}
+
+.msg_victim_swamp {
+    color: red;
+}
+.msg_victim_was_hit {
+    color: red;
+}
+.msg_victim_died {
+    color: navy;
+}

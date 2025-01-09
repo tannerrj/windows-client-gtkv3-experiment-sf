@@ -38,7 +38,7 @@ GtkFileChooser *ui_filechooser, *theme_filechooser;
 GtkComboBoxText *config_combobox_faceset;
 GtkComboBox *config_combobox_displaymode, *config_combobox_lighting;
 
-#define THEME_DEFAULT CF_DATADIR "/themes/Standard"
+#define THEME_DEFAULT CF_DATADIR "/themes/standard.css"
 
 /* Configuration variables initialized to NULL, set by config_load() */
 static char *theme;
@@ -66,132 +66,19 @@ static char *ui_name() {
     return g_path_get_basename(window_xml_file);
 }
 
-/**
- * Sets up player-specific client and layout rc files and handles loading of a
- * client theme if one is selected.  First, the player-specific rc files are
- * added to the GTK rc default files list.  ${HOME}/.crossfire/gtkrc is added
- * first.  All client sessions are affected by this rc file if it exists.
- * Next, ${HOME}/.crossfire/[layout].gtkrc is added, where [layout] is the
- * name of the layout file that is loaded.  IE. If gtk-v2.ui is loaded,
- * [layout] is "gtk-v2".  This sets up the possibility for a player to make a
- * layout-specific rc file.  Finally, if the client theme is not "None", the
- * client theme file is added.  In most cases, the player-specific files are
- * probably not going to exist, so the theme system will continue to work the
- * way it always has.  The player will have to "do something" to get the extra
- * functionality.  At some point, conceptually the client itself could be
- * enhanced to allow it to save some basic settings to either or both of the
- * player-specific rc files.
- *
- * @param reload
- * If true, user has changed theme after initial startup.  In this mode, we
- * need to call the routines that store away private theme data.  When program
- * is starting up, this is false, because all the widgets haven't been realized
- * yet, and the initialize routines will get the theme data at that time.
- */
-static char **default_files = NULL;
 void init_theme() {
-    char path[MAX_BUF];
-    char **tmp;
-    int i;
-
-    /*
-     * The GTK man page says copy of this data should be made, so do that.
-     */
-    tmp = gtk_rc_get_default_files();
-    i = 0;
-    while (tmp && tmp[i]) {
-        i++;
+    GtkCssProvider *provider = gtk_css_provider_new();
+    GError *error = NULL;
+    if (!gtk_css_provider_load_from_path(provider, THEME_DEFAULT, &error)) {
+        LOG(LOG_ERROR, "init_theme", "Failed to load style: %s\n", error->message);
+        g_error_free(error);
+    } else {
+        LOG(LOG_DEBUG, "init_theme", "Loaded CSS from %s" THEME_DEFAULT);
     }
-    /*
-     * Add two more GTK rc files that may be used by a player to customize
-     * the client appearance in general, or to customize the appearance
-     * of a specific layout.  Allocate pointers to the local copy
-     * of the entire list.
-     */
-    i += 2;
-    default_files = g_malloc(sizeof(char *) * (i + 1));
-    /*
-     * Copy in GTK's default list which probably contains system paths
-     * like <SYSCONFDIR>/gtk-2.0/gtkrc and user-specific files like
-     * ${HOME}/.gtkrc, or even LANGuage-specific ones like
-     * ${HOME}/.gtkrc.en, etc.
-     */
-    i = 0;
-    while (tmp && tmp[i]) {
-        default_files[i] = g_strdup(tmp[i]);
-        i++;
-    }
-    /*
-     * Add a player-specific gtkrc to the list of default rc files.  This
-     * file is probably reserved for player use, though in all liklihood
-     * will not get used that much.  Still, it makes it easy for someone
-     * to make their own theme without having to have access to the
-     * system-wide theme folder.  This is the lowest priority client rc
-     * file as either a <layout>.gtkrc file or a client-configured theme
-     * settings can over-ride it.
-     */
-    snprintf(path, sizeof(path), "%s/gtkrc", config_dir);
-    default_files[i] = g_strdup(path);
-    i++;
-    /*
-     * Add a UI layout-specific rc file to the list of default list.  It
-     * seems reasonable to allow client code to have access to this file
-     * to make some basic changes to fonts, via a graphical interface.
-     * Truncate window_xml_file to remove a .extension if one exists, so
-     * that the window positions file can be created with a .gtkrc suffix.
-     * This is a mid-priority client rc file as its settings supersede the
-     * client gtkrc file, but are overridden by a client-configured theme.
-     */
-    snprintf(path, sizeof(path), "%s/%s.gtkrc", config_dir, ui_name());
-    default_files[i] = g_strdup(path);
-    i++;
-    /*
-     * Mark the end of the list of default rc files.
-     */
-    default_files[i] = NULL;
+    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
 
 void load_theme(int reload) {
-    /*
-     * Whether or not this is default and initial run, we want to register
-     * the modified rc search path list, so GTK needs to get the changes.
-     * It is necessary to reset the the list each time through here each
-     * theme change grows the list.  Only one theme should be in the list
-     * at a time.
-     */
-    gtk_rc_set_default_files(default_files);
-
-    /*
-     * If a client-configured theme has been selected (something other than
-     * "None"), then add it to the list of GTK rc files to process.  Since
-     * this file is added last, it takes priority over both the gtkrc and
-     * <layout>.gtkrc files.  Remember, strcmp returns zero on a match, and
-     * a theme file should not be registered if "None" is selected.
-     */
-    g_assert(theme != NULL); // ensured by config_load()
-    {
-        /*
-         * Check for existence of the client theme file.  Unfortunately, at
-         * initial run time, the window may not be realized yet, so the
-         * message cannot be sent to the user directly.  It doesn't hurt to
-         * add the path even if the file isn't there, but the player might
-         * still want to know something is wrong since they picked a theme.
-         */
-        if (access(theme, R_OK) == -1) {
-            LOG(LOG_ERROR, "load_theme", "Unable to find theme file %s", theme);
-            g_free(theme);
-            theme = g_strdup(THEME_DEFAULT);
-        }
-        gtk_rc_add_default_file(theme);
-    }
-
-    /*
-     * Require GTK to reparse and rebind all the widget data.
-     */
-    gtk_rc_reparse_all_for_settings(
-        gtk_settings_get_for_screen(gdk_screen_get_default()), TRUE);
-    gtk_rc_reset_styles(
-        gtk_settings_get_for_screen(gdk_screen_get_default()));
     /*
      * Call client functions to reparse the custom widgets it controls.
      */
