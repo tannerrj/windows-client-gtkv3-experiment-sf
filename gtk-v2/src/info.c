@@ -396,28 +396,32 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *_base_style) {
     int i;
     char    style_name[MAX_BUF];
 
-    GtkStyleContext *base_style = gtk_widget_get_style_context(pane->textview);
-    GtkStyleContext *tmp_style = gtk_widget_get_style_context(pane->textview);
+    GtkWidgetPath *path = gtk_widget_path_new();
+    gtk_widget_path_append_type(path, GTK_TYPE_TEXT_VIEW);
+
+    GtkStyleContext *base_style = gtk_style_context_new();
+    gtk_style_context_set_path(base_style, path);
+    gtk_style_context_add_class(base_style, "base_text");
+
     /*
      * Old message/color support.
      */
     for (i = 0; i < NUM_COLORS; i++) {
         snprintf(style_name, MAX_BUF, "info_%s", usercolorname[i]);
-        gtk_style_context_save(tmp_style);
+        GtkStyleContext *tmp_style = gtk_style_context_new();
         gtk_style_context_add_class(tmp_style, style_name);
-
         if (!pane->color_tags[i]) {
             pane->color_tags[i] =
                 gtk_text_buffer_create_tag(
                     pane->textbuffer, NULL, NULL);
         }
         set_text_tag_from_style(pane->color_tags[i], tmp_style, base_style);
-        gtk_style_context_restore(tmp_style);
+        g_object_unref(tmp_style);
     }
 
     /* Font type support */
     for (i = 0; i < NUM_FONTS; i++) {
-        gtk_style_context_save(tmp_style);
+        GtkStyleContext *tmp_style = gtk_style_context_new();
         gtk_style_context_add_class(tmp_style, font_style_names[i]);
         if (!pane->font_tags[i]) {
             pane->font_tags[i] =
@@ -425,8 +429,11 @@ void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *_base_style) {
                     pane->textbuffer, NULL, NULL);
         }
         set_text_tag_from_style(pane->font_tags[i], tmp_style, base_style);
-        gtk_style_context_restore(tmp_style);
+        g_object_unref(tmp_style);
     }
+
+    gtk_widget_path_free(path);
+    g_object_unref(base_style);
 }
 
 /**
