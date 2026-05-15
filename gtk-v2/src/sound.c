@@ -23,6 +23,12 @@
 
 #include "client-vala.h"
 
+/**
+ * Initialize the sound subsystem by starting the external cfsndserv process.
+ * The sound server is launched via cf_snd_init() from the Vala binding layer.
+ *
+ * @return Non-zero on success, 0 if initialization failed.
+ */
 int init_sounds() {
     return cf_snd_init() == 0;
 }

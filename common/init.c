@@ -44,6 +44,14 @@ gint16 want_config[CONFIG_NUMS], use_config[CONFIG_NUMS];
 
 #define FREE_AND_CLEAR(xyz) { free(xyz); xyz=NULL; }
 
+/**
+ * Handle the "version" command from the server. Parses client-to-server (cs)
+ * and server-to-client (sc) protocol version numbers and warns if they differ
+ * from the client's compiled-in constants.
+ *
+ * @param data Raw ASCII payload following the command name.
+ * @param len  Length of the payload in bytes.
+ */
 void VersionCmd(char *data, int len) {
     char *cp;
 
@@ -70,11 +78,23 @@ void VersionCmd(char *data, int len) {
     }
 }
 
+/**
+ * Send the "version" command to the server, announcing the client's protocol
+ * version numbers and version string.
+ *
+ * @param csock Active client socket to send to.
+ */
 void SendVersion(ClientSocket csock) {
     cs_print_string(csock.fd, "version %d %d %s",
             VERSION_CS, VERSION_SC, VERSION_INFO);
 }
 
+/**
+ * Send the "addme" command to the server, requesting that the client be added
+ * to the game. Only used with the legacy (non-account) login method.
+ *
+ * @param csock Active client socket to send to.
+ */
 void SendAddMe(ClientSocket csock) {
     cs_print_string(csock.fd, "addme");
 }

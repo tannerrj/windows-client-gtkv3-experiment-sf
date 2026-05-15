@@ -141,6 +141,17 @@ static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay) {
     cairo_paint(cr);
 }
 
+/**
+ * Draw a tile-sized sub-region of a smooth pixmap at a destination map cell.
+ * Used to composite edge-blending tiles on top of neighbouring cells.
+ *
+ * @param cr     Cairo context for the map drawing area.
+ * @param pixmap Smooth pixmap to draw from.
+ * @param sx     Source tile column in the pixmap sheet.
+ * @param sy     Source tile row in the pixmap sheet.
+ * @param dx     Destination tile column on screen.
+ * @param dy     Destination tile row on screen.
+ */
 static void draw_smooth_pixmap(cairo_t* cr, PixmapInfo* pixmap,
         const int sx, const int sy, const int dx, const int dy) {
     const int src_x = map_image_size * sx;
@@ -152,6 +163,15 @@ static void draw_smooth_pixmap(cairo_t* cr, PixmapInfo* pixmap,
     cairo_fill(cr);
 }
 
+/**
+ * Bitmap-based map scrolling stub. Returns 0 because bitmap scrolling
+ * optimisation is not implemented for this display backend; the caller falls
+ * back to a full redraw.
+ *
+ * @param dx Horizontal scroll distance in tiles (unused).
+ * @param dy Vertical scroll distance in tiles (unused).
+ * @return Always 0 (scroll not handled).
+ */
 int display_mapscroll(int dx, int dy) {
         return 0;
 }
@@ -305,6 +325,18 @@ static void map_draw_layer(cairo_t *cr, int layer, int mx_start, int nx, int my_
     }
 }
 
+/**
+ * Draw player and DM name labels on top of all map tiles. Labels are
+ * centered horizontally over their tile and stacked vertically when multiple
+ * labels occupy the same cell. DM labels are drawn red; party members in
+ * light blue; all others in white.
+ *
+ * @param cr       Cairo context for the map drawing area.
+ * @param mx_start Virtual map x coordinate of the top-left tile.
+ * @param nx       Number of tiles to draw in the x direction.
+ * @param my_start Virtual map y coordinate of the top-left tile.
+ * @param ny       Number of tiles to draw in the y direction.
+ */
 static void map_draw_labels(cairo_t *cr, int mx_start, int nx, int my_start, int ny) {
     cairo_font_face_t *font = cairo_toy_font_face_create("", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_face(cr, font);
@@ -353,6 +385,15 @@ static void map_draw_labels(cairo_t *cr, int mx_start, int nx, int my_start, int
     cairo_font_face_destroy(font);
 }
 
+/**
+ * Return the opacity (0.0–1.0) that should be used when darkening a map cell.
+ * Fog-of-war cells receive an additional 0.2 opacity boost on top of the
+ * server-reported darkness value.
+ *
+ * @param mx Virtual map x coordinate of the cell.
+ * @param my Virtual map y coordinate of the cell.
+ * @return   Alpha opacity for the darkness overlay.
+ */
 static double mapcell_darkness(int mx, int my) {
     double opacity = mapdata_cell(mx, my)->darkness / 192.0 * 0.6;
     if (use_config[CONFIG_FOGWAR] && mapdata_cell(mx, my)->state == FOG) {
@@ -361,6 +402,18 @@ static double mapcell_darkness(int mx, int my) {
     return opacity;
 }
 
+/**
+ * Composite a darkness overlay on top of the already-drawn map. Builds a
+ * small grayscale light map (one pixel per tile plus a 1-pixel border to
+ * avoid edge artefacts), then scales it up and blits it over the map using
+ * the filter selected by CONFIG_LIGHTING (nearest, good, or best quality).
+ *
+ * @param cr       Cairo context for the map drawing area.
+ * @param nx       Number of tiles visible in the x direction.
+ * @param ny       Number of tiles visible in the y direction.
+ * @param mx_start Virtual map x coordinate of the top-left tile.
+ * @param my_start Virtual map y coordinate of the top-left tile.
+ */
 static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_start) {
     /**
      * Create light map nx wide, ny tall. Add a border 1px around to get rid
@@ -407,7 +460,15 @@ static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_star
     cairo_surface_destroy(cst_lm);
 }
 
-// Draw move-to tile.
+/**
+ * Draw an outline around the move-to destination tile, if any. A yellow
+ * outline indicates a walk destination and a red outline indicates an attack
+ * destination. The outline is not drawn once the player reaches the target.
+ *
+ * @param cr       Cairo context for the map drawing area.
+ * @param mx_start Virtual map x coordinate of the top-left visible tile.
+ * @param my_start Virtual map y coordinate of the top-left visible tile.
+ */
 static void draw_move_to(cairo_t *cr, int mx_start, int my_start) {
     int mx = move_to_x;
     int my = move_to_y;
@@ -511,6 +572,11 @@ static void gtk_map_redraw() {
 void resize_map_window(int x, int y) {
 }
 
+/**
+ * Incrementally interpolate the rendering offset toward the desired prediction
+ * offset. The step size is controlled by CONFIG_MAPSCALE (predict_alpha),
+ * producing a smooth scrolling effect when local movement prediction is active.
+ */
 static void update_global_offset() {
     int dx, dy;
     dx = ((want_offset_x*map_image_size) - global_offset_x)*predict_alpha/100.0;
@@ -545,6 +611,10 @@ void draw_map() {
     }
 }
 
+/**
+ * GTK "draw" signal handler for the map drawing area. Triggers a full map
+ * redraw and returns FALSE to allow further propagation of the event.
+ */
 static gboolean map_expose_event(GtkWidget *widget, GdkEventExpose *event,
         gpointer user_data) {
     draw_map();

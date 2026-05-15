@@ -26,9 +26,11 @@
 #include "script.h"
 
 /**
+ * Initialize a SockList using the given buffer. Reserves the first two bytes
+ * for the packet length header, so actual data starts at buf+2.
  *
- * @param sl
- * @param buf
+ * @param sl  SockList to initialize.
+ * @param buf Backing byte buffer; must be at least MAX_BUF bytes.
  */
 void SockList_Init(SockList *sl, guint8 *buf)
 {
@@ -37,9 +39,10 @@ void SockList_Init(SockList *sl, guint8 *buf)
 }
 
 /**
+ * Append a single byte to the SockList buffer.
  *
- * @param sl
- * @param c
+ * @param sl SockList to write to.
+ * @param c  Byte value to append.
  */
 void SockList_AddChar(SockList *sl, char c)
 {
@@ -58,9 +61,11 @@ void SockList_AddChar(SockList *sl, char c)
 }
 
 /**
+ * Append a 16-bit unsigned integer to the SockList buffer in big-endian byte
+ * order.
  *
- * @param sl
- * @param data
+ * @param sl   SockList to write to.
+ * @param data 16-bit value to append.
  */
 void SockList_AddShort(SockList *sl, guint16 data)
 {
@@ -74,9 +79,11 @@ void SockList_AddShort(SockList *sl, guint16 data)
 }
 
 /**
+ * Append a 32-bit unsigned integer to the SockList buffer in big-endian byte
+ * order.
  *
- * @param sl
- * @param data
+ * @param sl   SockList to write to.
+ * @param data 32-bit value to append.
  */
 void SockList_AddInt(SockList *sl, guint32 data)
 {
@@ -92,9 +99,11 @@ void SockList_AddInt(SockList *sl, guint32 data)
 }
 
 /**
+ * Append a NUL-terminated string (without the NUL) to the SockList buffer.
+ * If the string would overflow the buffer, it is truncated to fit.
  *
- * @param sl
- * @param str
+ * @param sl  SockList to write to.
+ * @param str String to append.
  */
 void SockList_AddString(SockList *sl, const char *str)
 {
@@ -131,9 +140,10 @@ int SockList_Send(SockList *sl, GSocketConnection* c) {
 }
 
 /**
+ * Read a single byte from a raw byte buffer.
  *
- * @param data
- * @return
+ * @param data Pointer to the byte buffer.
+ * @return The first byte as a char.
  */
 char GetChar_String(const unsigned char *data)
 {
@@ -173,9 +183,10 @@ gint64 GetInt64_String(const unsigned char *data)
 }
 
 /**
+ * Read a big-endian 16-bit signed integer from a raw byte buffer.
  *
- * @param data
- * @return
+ * @param data Pointer to at least 2 bytes of data.
+ * @return 16-bit signed value decoded from big-endian bytes.
  */
 short GetShort_String(const unsigned char *data)
 {

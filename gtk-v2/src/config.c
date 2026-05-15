@@ -55,6 +55,13 @@ int predict_alpha = 10;
 
 static void on_config_close(GtkButton *button, gpointer user_data);
 
+/**
+ * Return true if the user's desired setting for the given config option differs
+ * from the currently active setting (i.e. a change is pending reconnection).
+ *
+ * @param type CONFIG_xxx index to check.
+ * @return     true if want_config[type] != use_config[type].
+ */
 static bool IS_DIFFERENT(int type) {
     return want_config[type] != use_config[type];
 }
@@ -66,6 +73,11 @@ static char *ui_name() {
     return g_path_get_basename(window_xml_file);
 }
 
+/**
+ * Load and apply the default CSS theme (THEME_DEFAULT) to all GTK screens.
+ * Called once during startup before any windows are shown. Errors are logged
+ * but do not abort startup.
+ */
 void init_theme() {
     GtkCssProvider *provider = gtk_css_provider_new();
     GError *error = NULL;
@@ -78,6 +90,14 @@ void init_theme() {
     gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
 
+/**
+ * Reload theme-controlled widget styles and force a full UI redraw. Called
+ * after the user selects a new theme in the configuration dialog, and once
+ * at startup to apply the initial theme.
+ *
+ * @param reload Non-zero if this is a reload (unused, kept for calling
+ *               convention compatibility).
+ */
 void load_theme(int reload) {
     /*
      * Call client functions to reparse the custom widgets it controls.

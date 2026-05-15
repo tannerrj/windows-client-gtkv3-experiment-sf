@@ -145,6 +145,17 @@ static gboolean redraw(gpointer data) {
     return FALSE;
 }
 
+/**
+ * GTK "response" signal handler for the auto-AFK dialog. Interprets the
+ * button pressed by the user: response 1 stays AFK, response 2 cancels AFK
+ * and disables auto-AFK for the session, and all other responses (including
+ * closing the dialog) cancel AFK and resume normal play.
+ *
+ * @param self        The dialog widget that received the response.
+ * @param response_id Button ID returned by GTK (1 = stay AFK, 2 = disable
+ *                    auto-AFK, other = return to game).
+ * @param user_data   Unused.
+ */
 static void on_auto_afk_response(GtkDialog *self, gint response_id, gpointer user_data) {
     // It is possible for is_afk to be false because dialog is non-modal.
     switch (response_id) {
@@ -170,6 +181,10 @@ static void on_auto_afk_response(GtkDialog *self, gint response_id, gpointer use
     }
 }
 
+/**
+ * Automatically mark the player as AFK after the configured idle timeout, and
+ * show a non-modal dialog offering to return to the game or disable auto-AFK.
+ */
 static void auto_afk() {
     send_command("afk", 0, true);
     GtkWidget *dialog = gtk_dialog_new_with_buttons("Auto-AFK", GTK_WINDOW(window_root), GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -245,6 +260,15 @@ static gboolean do_network(GObject *stream, gpointer data) {
     return TRUE;
 }
 
+/**
+ * Periodic timer callback (8 Hz) that drives client-side animation and the
+ * auto-AFK check when the server is not sending tick commands. Schedules a map
+ * redraw via g_idle_add() and calls client_tick() if CONFIG_SERVER_TICKS is
+ * disabled. Stops itself (returns FALSE) once the main window is hidden.
+ *
+ * @param data Unused callback data.
+ * @return TRUE to keep the timer running, FALSE to cancel it.
+ */
 static gboolean self_tick(gpointer data) {
     if (playing) {
         g_idle_add(redraw, NULL);
@@ -351,6 +375,11 @@ void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
     g_usleep(1 * 1e6);
 }
 
+/**
+ * Perform platform-specific socket initialization. On POSIX systems, ignore
+ * SIGPIPE so that a broken server connection does not terminate the client
+ * process; errors are detected via return values instead.
+ */
 static void init_sockets() {
 #ifndef WIN32
     signal(SIGPIPE, SIG_IGN);

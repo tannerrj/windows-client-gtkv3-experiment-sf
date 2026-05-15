@@ -21,6 +21,12 @@
 #include "client.h"
 #include "main.h"
 
+/**
+ * Render the entire magic map into the magic_map drawing area. Switches the
+ * map notebook to the magic map page. Each tile is drawn as a filled rectangle
+ * in the color indicated by its magic map value. Does nothing if the player
+ * has no magic map data (cpl.magicmap == NULL).
+ */
 void draw_magic_map() {
     if (!cpl.magicmap) {
         // Do nothing if player has no magic map data.
@@ -83,6 +89,11 @@ void magic_map_flash_pos() {
     cairo_destroy(cr);
 }
 
+/**
+ * GTK "draw" signal handler for the magic map drawing area. Redraws the magic
+ * map on every expose event and returns FALSE to allow further signal
+ * propagation.
+ */
 gboolean on_drawingarea_magic_map_expose_event() {
     draw_magic_map();
     return FALSE;

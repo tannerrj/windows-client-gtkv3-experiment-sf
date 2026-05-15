@@ -108,43 +108,53 @@ static GtkTreeStore *treestore; /**< store of data for treeview */
 static void on_switch_page(GtkNotebook *notebook, gpointer *page,
                            guint page_num, gpointer user_data);
 
+/** Inventory filter: show all items with color coding. */
 static int show_all(item *it) {
     return INV_SHOW_ITEM | INV_SHOW_COLOR;
 }
 
+/** Inventory filter: show only applied/equipped items. */
 static int show_applied(item *it) {
     return (it->applied ? INV_SHOW_ITEM : 0);
 }
 
+/** Inventory filter: show only items that are not applied/equipped. */
 static int show_unapplied(item *it) {
     return (it->applied ? 0 : INV_SHOW_ITEM);
 }
 
+/** Inventory filter: show only unpaid items. */
 static int show_unpaid(item *it) {
     return (it->unpaid ? INV_SHOW_ITEM : 0);
 }
 
+/** Inventory filter: show only cursed or damned items. */
 static int show_cursed(item *it) {
     return ((it->cursed | it->damned) ? INV_SHOW_ITEM : 0);
 }
 
+/** Inventory filter: show only magical items. */
 static int show_magical(item *it) {
     return (it->magical ? INV_SHOW_ITEM : 0);
 }
 
+/** Inventory filter: show only non-magical items. */
 static int show_nonmagical(item *it) {
     return (it->magical ? 0 : INV_SHOW_ITEM);
 }
 
+/** Inventory filter: show only locked items, with color coding. */
 static int show_locked(item *it) {
     return (it->locked ? (INV_SHOW_ITEM | INV_SHOW_COLOR) : 0);
 }
 
+/** Inventory filter: show unlocked items and open containers with color coding. */
 static int show_unlocked(item *it) {
     // Show open containers, even if locked, to make moving items easier.
     return ((it->locked && !it->open) ? 0 : (INV_SHOW_ITEM | INV_SHOW_COLOR));
 }
 
+/** Inventory filter: show only unidentified items. */
 static int show_unidentified(item *it) {
     return ((it->flagsval & F_UNIDENTIFIED) ? INV_SHOW_ITEM : 0);
 }
@@ -182,14 +192,14 @@ enum item_env {
 };
 
 /**
- * Returns information on the environment of the item, using the return values
- * below.  Note that there should never be a case where both ITEM_GROUND and
- * ITEM_INVENTORY are returned, but I prefer a more active approach in
- * returning actual values and not presuming that lack of value means it is in
- * the other location.
+ * Return a bitmask describing where item it resides. Checks whether the item
+ * is directly in the player's inventory, on the ground (pl.below), or nested
+ * inside a container. Recursively OR-s ITEM_IN_CONTAINER for each nesting
+ * level.
  *
- * @param it
- * @return
+ * @param it Item to inspect.
+ * @return   Bitmask of ITEM_INVENTORY, ITEM_GROUND, and/or ITEM_IN_CONTAINER,
+ *           or 0 if the item has no environment.
  */
 static int get_item_env(item *it) {
     if (it->env == cpl.ob) {
@@ -206,22 +216,27 @@ static int get_item_env(item *it) {
 
 static void list_item_drop(item *tmp);
 
+/** Right-click menu action: examine the selected item. */
 static void ma_examine(GtkWidget *widget, item *tmp) {
     client_send_examine(tmp->tag);
 }
 
+/** Right-click menu action: apply or unapply the selected item. */
 static void ma_apply(GtkWidget *widget, item *tmp) {
     client_send_apply(tmp->tag);
 }
 
+/** Right-click menu action: mark the selected item for later use. */
 static void ma_mark(GtkWidget *widget, item *tmp) {
     send_mark_obj(tmp);
 }
 
+/** Right-click menu action: toggle the lock status of the selected item. */
 static void ma_lock(GtkWidget *widget, item *tmp) {
     toggle_locked(tmp);
 }
 
+/** Right-click menu action: drop the selected item to the ground. */
 static void ma_drop(GtkWidget *widget, item *tmp) {
     list_item_drop(tmp);
 }

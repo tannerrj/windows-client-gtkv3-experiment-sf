@@ -149,6 +149,16 @@ bool mapdata_contains(int x, int y) {
     return true;
 }
 
+/**
+ * Return true if the cell at (x, y) can contribute to edge smoothing on the
+ * given layer. A cell can smooth if its face is empty (face == 0) and it is
+ * not the base layer, or if the cell has a non-zero smooth value.
+ *
+ * @param x     Map x coordinate.
+ * @param y     Map y coordinate.
+ * @param layer Layer index to check.
+ * @return      true if smoothing from this cell is permitted.
+ */
 bool mapdata_can_smooth(int x, int y, int layer) {
     return (mapdata_cell(x, y)->heads[layer].face == 0 && layer > 0) ||
             mapdata_cell(x, y)->smooth[layer];
@@ -211,6 +221,14 @@ void mapdata_clear(int x, int y) {
     mapdata_cell(px, py)->state = FOG;
 }
 
+/**
+ * Mark all cells adjacent to (x, y) as needing a smoothing pass. Only called
+ * when the cell has a smooth value > 1 (i.e. it participates in edge blending).
+ *
+ * @param x     Map x coordinate of the cell that changed.
+ * @param y     Map y coordinate of the cell that changed.
+ * @param layer Layer that changed.
+ */
 static void mark_resmooth(int x, int y, int layer)
 {
     int sdx,sdy;

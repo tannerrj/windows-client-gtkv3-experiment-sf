@@ -75,14 +75,32 @@ void new_player(long tag, char *name, long weight, long face) {
     }
 }
 
+/**
+ * Ask the server to describe the object at map position (x, y) relative to
+ * the player. The server responds with a drawinfo message.
+ *
+ * @param x Column offset from the player's position.
+ * @param y Row offset from the player's position.
+ */
 void look_at(int x, int y) {
     cs_print_string(csocket.fd, "lookat %d %d", x, y);
 }
 
+/**
+ * Send an "apply" command to the server for the item identified by tag.
+ *
+ * @param tag Server-assigned tag of the item to apply.
+ */
 void client_send_apply(int tag) {
     cs_print_string(csocket.fd, "apply %d", tag);
 }
 
+/**
+ * Send an "examine" command to the server for the item identified by tag.
+ * The server responds with a detailed description of the item.
+ *
+ * @param tag Server-assigned tag of the item to examine.
+ */
 void client_send_examine(int tag) {
     cs_print_string(csocket.fd, "examine %d", tag);
 }
@@ -101,6 +119,11 @@ void client_send_move(int loc, int tag, int nrof) {
  */
 static int drun=-1, dfire=-1;
 
+/**
+ * Signal intent to stop firing. Sets a high bit in dfire so that the next
+ * call to fire_dir() or the input loop will send "fire_stop" to the server.
+ * No-op when not in the Playing input state.
+ */
 void stop_fire() {
     if (cpl.input_state != Playing) {
         return;
@@ -108,6 +131,10 @@ void stop_fire() {
     dfire |= 0x100;
 }
 
+/**
+ * Send "fire_stop" to the server and reset the tracked fire direction. Only
+ * sends if a fire command was previously issued (dfire != -1).
+ */
 void clear_fire() {
     if (dfire != -1) {
         send_command("fire_stop", -1, SC_FIRERUN);
@@ -115,6 +142,10 @@ void clear_fire() {
     }
 }
 
+/**
+ * Send "run_stop" to the server and reset the tracked run direction. Only
+ * sends if a run command was previously issued (drun != -1).
+ */
 void clear_run() {
     if (drun != -1) {
         send_command("run_stop", -1, SC_FIRERUN);
@@ -122,6 +153,13 @@ void clear_run() {
     }
 }
 
+/**
+ * Send a "fire <dir>" command to the server, or refresh the fire-stop timer if
+ * already firing in the same direction. No-op when not in the Playing input
+ * state.
+ *
+ * @param dir Direction to fire (1–8, following Crossfire compass directions).
+ */
 void fire_dir(int dir) {
     if (cpl.input_state != Playing) {
         return;
@@ -138,11 +176,21 @@ void fire_dir(int dir) {
     }
 }
 
+/**
+ * Signal intent to stop running. Immediately sends "run_stop" and sets a high
+ * bit in drun so subsequent processing knows a stop was requested.
+ */
 void stop_run() {
     send_command("run_stop", -1, SC_FIRERUN);
     drun |= 0x100;
 }
 
+/**
+ * Send a "run <dir>" command to the server, or refresh the run-stop timer if
+ * already running in the same direction.
+ *
+ * @param dir Direction to run (1–8, following Crossfire compass directions).
+ */
 void run_dir(int dir) {
     if (dir != drun) {
         char buf[MAX_BUF];
@@ -157,6 +205,14 @@ void run_dir(int dir) {
 
 extern const char *const directions[];
 
+/**
+ * Convert a direction name string (e.g. "north") to the corresponding numeric
+ * direction index (0–8). Returns -1 if the string does not match any known
+ * direction.
+ *
+ * @param dir Direction name string to look up.
+ * @return    Numeric direction index, or -1 if unknown.
+ */
 int command_to_direction(const char *dir) {
     for (int i = 0; i < 9; i++) {
         if (!strcmp(dir, directions[i])) {
@@ -166,10 +222,23 @@ int command_to_direction(const char *dir) {
     return -1;
 }
 
+/**
+ * Convert a numeric direction index (0–8) to its command name string (e.g. 1
+ * → "north"). The caller must ensure dir is in the valid range.
+ *
+ * @param dir Numeric direction index.
+ * @return    Pointer to a static direction name string.
+ */
 const char* dir_to_command(int dir) {
     return directions[dir];
 }
 
+/**
+ * Send a single-step movement command to the server in the given direction.
+ * Unlike run_dir(), this does not set continuous run mode.
+ *
+ * @param dir Direction to move (0–8).
+ */
 void walk_dir(int dir) {
     send_command(dir_to_command(dir), -1, SC_MOVETO);
 }
@@ -215,18 +284,29 @@ void predict_scroll(int dir) {
     }
 }
 
+/**
+ * Return true if str begins with prefix.
+ *
+ * @param prefix String to look for at the start of str.
+ * @param str    String to test.
+ * @return       true if str starts with prefix.
+ */
 static bool starts_with(const char *prefix, const char *str) {
     return strncmp(prefix, str, strlen(prefix)) == 0;
 }
 
-/* This should be used for all 'command' processing.  Other functions should
- * call this so that proper windowing will be done.
- * command is the text command, repeat is a count value, or -1 if none
- * is desired and we don't want to reset the current count.
- * must_send means we must send this command no matter what (ie, it is
- * an administrative type of command like fire_stop, and failure to send
- * it will cause definate problems
- * return 1 if command was sent, 0 if not sent.
+/**
+ * Central command dispatcher: send a text command to the server using the
+ * "ncom" windowing protocol if supported. All movement, fire, run, and
+ * application commands should funnel through here so that command-window
+ * throttling and echo are handled uniformly. Also notifies attached scripts
+ * via script_monitor() and updates AFK / last-command-sent tracking.
+ *
+ * @param command   Text command to send (e.g. "north", "fire 2", "apply 42").
+ * @param repeat    Repeat count to include, or -1 to leave cpl.count unchanged.
+ * @param must_send SC_NORMAL / SC_FIRERUN / SC_ALWAYS / SC_MOVETO — controls
+ *                  whether the command may be dropped when the window is full.
+ * @return          1 if the command was sent, 0 if it was dropped.
  */
 int send_command(const char *command, int repeat, int must_send) {
     static char last_command[MAX_BUF]="";
@@ -312,6 +392,15 @@ int send_command(const char *command, int repeat, int must_send) {
     return 1;
 }
 
+/**
+ * Handle the "comc" (command complete) packet from the server. Updates the
+ * command window counters and, if latency profiling is enabled, logs the
+ * round-trip time. Also reverts the local movement prediction scroll offset
+ * when the server acknowledges a movement command.
+ *
+ * @param data Raw payload bytes (6 bytes: uint16 command_received, int32 time).
+ * @param len  Length of the payload; must be exactly 6.
+ */
 void CompleteCmd(unsigned char *data, int len) {
     if (len !=6) {
         LOG(LOG_ERROR,"common::CompleteCmd","Invalid length %d - ignoring", len);
@@ -339,10 +428,15 @@ void CompleteCmd(unsigned char *data, int len) {
     script_sync(in_flight);
 }
 
-/* This does special processing on the 'take' command.  If the
- * player has a container open, we want to specifiy what object
- * to move from that since we've sorted it.  command is
- * the command as tped, cpnext is any optional params.
+/**
+ * Handle the "take" command with container-aware logic. When the player has a
+ * container open and no target is specified, moves the first item from the
+ * container into the player's inventory rather than picking up from the floor.
+ * Falls back to a plain send_command() when cpnext is non-NULL or no container
+ * is open.
+ *
+ * @param command The command string as typed by the player ("take").
+ * @param cpnext  Optional argument following the command, or NULL if none.
  */
 void command_take(const char *command, const char *cpnext) {
     /* If the player has specified optional data, or the player

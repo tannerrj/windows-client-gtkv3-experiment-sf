@@ -91,6 +91,13 @@ int make_path_to_file(char *filename) {
     return result;
 }
 
+/**
+ * Return an ANSI-colored two-character tag string for the given log level
+ * (e.g. bold blue "DD" for debug). Used when formatting log output to stderr.
+ *
+ * @param level The log level to represent.
+ * @return      A static string containing the colored tag.
+ */
 static const char *getLogLevelText(LogLevel level) {
     const char *LogLevelTexts[] = {
         "\x1b[34;1m" "DD" "\x1b[0m",

@@ -141,8 +141,13 @@ void stats_get_styles(void)
 }
 
 /**
- * Associate the XML-defined widgets with pointers by name reference.
- * @param *window_root
+ * Initialize the stats window by looking up all GtkBuilder-defined widgets by
+ * name and storing their pointers in statwindow. Also populates the skill
+ * experience and protection grid labels. Must be called once after the UI is
+ * loaded.
+ *
+ * @param window_root The root window widget (unused directly, kept for
+ *                    signature consistency with other init functions).
  */
 void stats_init(GtkWidget *window_root) {
     int i, x, y;

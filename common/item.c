@@ -29,11 +29,14 @@ static item *player, *map;      /* these lists contains rest of items */
 
 #include "item-types.h"
 
-/* This uses the item_types table above.  We try to figure out if
- * name has a match above.  Matching is done pretty loosely - however
- * we try to match the start of the name because that is more reliable.
- * We return the 'type' (matching array element above), 255 if no match
- * (so unknown objects put at the end)
+/**
+ * Determine the item category type index for a given item name by searching
+ * the item_types table. Matching is loose: a leading '^' in an entry means the
+ * name must start with that string, otherwise the string may appear anywhere
+ * in the name. Returns 255 for unknown items (so they sort to the end).
+ *
+ * @param name Item name string as reported by the server.
+ * @return     Category type index (0–NUM_ITEM_TYPES-1), or 255 if not found.
  */
 guint8 get_type_from_name(const char *name)
 {
@@ -62,8 +65,13 @@ guint8 get_type_from_name(const char *name)
     return 255;
 }
 
-/* Does what is says - inserts newitem before the object.
- * the parameters can not be null
+/**
+ * Insert newitem immediately before before in the doubly-linked inventory list.
+ * Neither pointer may be NULL. Updates prev/next links and, if before was the
+ * list head, updates the enclosing container's inv pointer.
+ *
+ * @param newitem Item to insert.
+ * @param before  Existing item that newitem will precede.
  */
 static void insert_item_before_item(item *newitem, item *before)
 {
@@ -83,7 +91,14 @@ static void insert_item_before_item(item *newitem, item *before)
     }
 }
 
-/* Item it has gotten an item type, so we need to resort its location */
+/**
+ * Re-sort a single item within its container's inventory list. The list is
+ * ordered first by item type, then alphabetically by name. Items on the map or
+ * already in the correct position are left untouched. Called after an item's
+ * type or name changes (e.g. upon identification).
+ *
+ * @param it The item to re-sort.
+ */
 void update_item_sort(item *it)
 {
     item *itmp, *last = NULL;
@@ -176,12 +191,14 @@ void update_item_sort(item *it)
     it->next = NULL;
 }
 
-/* Stolen from common/item.c */
-/*
- * get_number(integer) returns the text-representation of the given number
- * in a static buffer.  The buffer might be overwritten at the next
- * call to get_number().
- * It is currently only used by the query_name() function.
+/**
+ * Return the English text representation of an item count (e.g. 1 → "a",
+ * 3 → "three", 25 → "25"). For values 0–20 a word is returned from a static
+ * table; for larger values the number is formatted into a static buffer.
+ * The returned pointer is valid only until the next call to get_number().
+ *
+ * @param i Item count to convert.
+ * @return  Static string with the text representation.
  */
 const char *get_number(guint32 i)
 {
@@ -202,9 +219,12 @@ const char *get_number(guint32 i)
     }
 }
 
-/*
- *  new_item() returns pointer to new item which
- *  is allocated and initialized correctly
+/**
+ * Allocate and zero-initialize a new item. Exits with code 0 if allocation
+ * fails (treated as a fatal error). All flags, counters, and pointers are set
+ * to safe initial values.
+ *
+ * @return Pointer to the newly allocated, initialized item.
  */
 static item *new_item(void)
 {
@@ -236,8 +256,11 @@ static item *new_item(void)
     return op;
 }
 
-/*
- *  free_items() frees all allocated items from list
+/**
+ * Recursively free an inventory list and all nested sub-inventories. After
+ * this call all pointers in the chain are invalid.
+ *
+ * @param op Head of the item list to free (may be NULL).
  */
 void free_all_items(item *op)
 {
@@ -253,8 +276,13 @@ void free_all_items(item *op)
     }
 }
 
-/*
- *  Recursive function, used by locate_item()
+/**
+ * Recursively search a linked inventory list and its sub-inventories for the
+ * item with the given server tag.
+ *
+ * @param op  Head of the item list to search.
+ * @param tag Server-assigned tag to look for.
+ * @return    Pointer to the matching item, or NULL if not found.
  */
 static item *locate_item_from_item(item *op, gint32 tag)
 {
@@ -271,9 +299,12 @@ static item *locate_item_from_item(item *op, gint32 tag)
     return NULL;
 }
 
-/*
- *  locate_item() returns pointer to the item which tag is given
- *  as parameter or if item is not found returns NULL
+/**
+ * Find an item by server tag, searching the map floor, player inventory, and
+ * the open container. Tag 0 always returns the virtual map item.
+ *
+ * @param tag Server-assigned tag of the item to find.
+ * @return    Pointer to the item, or NULL if not found.
  */
 item *locate_item(gint32 tag)
 {
@@ -302,9 +333,13 @@ item *locate_item(gint32 tag)
     return NULL;
 }
 
-/*
- *  remove_item() inserts op the the list of free items
- *  Note that it don't clear all fields in item
+/**
+ * Unlink an item from its container's inventory list and free it. Also
+ * recursively removes any sub-inventory the item holds. Does nothing if op is
+ * NULL, the player object, or the map object. Does NOT free the item if it is
+ * the currently open container — the caller is responsible for that.
+ *
+ * @param op Item to remove and free.
  */
 void remove_item(item *op)
 {
@@ -338,8 +373,12 @@ void remove_item(item *op)
     g_free(op);
 }
 
-/*
- *  remove_item_inventory() recursive frees items inventory
+/**
+ * Remove and free all items in op's inventory without freeing op itself.
+ * Triggers the container-clearing GUI event so that inventory panels are
+ * updated. Does nothing if op is NULL.
+ *
+ * @param op Container whose inventory should be cleared.
  */
 void remove_item_inventory(item *op)
 {
@@ -355,8 +394,11 @@ void remove_item_inventory(item *op)
     }
 }
 
-/*
- *  add_item() adds item op to end of the inventory of item env
+/**
+ * Append op to the end of env's inventory list and set op's env pointer.
+ *
+ * @param env Container to add to.
+ * @param op  Item to append.
  */
 static void add_item(item *env, item *op)
 {
@@ -378,10 +420,14 @@ static void add_item(item *env, item *op)
     }
 }
 
-/*
- *  create_new_item() returns pointer to a new item, inserts it to env
- *  and sets its tag field and clears locked flag (all other fields
- *  are unitialized and may contain random values)
+/**
+ * Allocate a new item, assign it the given tag, clear its locked flag, and
+ * append it to env's inventory. Fields other than tag and locked are
+ * uninitialized after this call; caller must populate them.
+ *
+ * @param env Container to add the new item to (may be NULL to leave unlinked).
+ * @param tag Server-assigned tag for the new item.
+ * @return    Pointer to the newly created item.
  */
 static item *create_new_item(item *env, gint32 tag)
 {
@@ -404,6 +450,13 @@ static const char *const apply_string[] = {
     "", " (readied)", " (wielded)", " (worn)", " (active)", " (applied)",
 };
 
+/**
+ * Rebuild op->flags from the item's boolean state fields. The resulting string
+ * is a human-readable list of active status tags such as " (wielded)",
+ * " (cursed)", " (magic)", etc.
+ *
+ * @param op Item whose flag string should be updated.
+ */
 static void set_flag_string(item *op)
 {
     op->flags[0] = 0;
@@ -441,6 +494,13 @@ static void set_flag_string(item *op)
     }
 }
 
+/**
+ * Decode the server-sent bitfield into individual boolean flags on op.
+ * Also saves the previous open state into was_open for change detection.
+ *
+ * @param op    Item to update.
+ * @param flags Packed flag bits from the server item protocol.
+ */
 static void get_flags(item *op, guint16 flags)
 {
     op->was_open = op->open;
