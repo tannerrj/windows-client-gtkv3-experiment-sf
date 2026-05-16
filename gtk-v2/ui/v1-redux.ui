@@ -11,7 +11,7 @@
     <property name="width-request">1180</property>
     <property name="height-request">925</property>
     <property name="can-focus">False</property>
-    <property name="title" translatable="yes">Crossfire Client - GTK v2</property>
+    <property name="title" translatable="yes">Crossfire Client - GTK v3 - V1 Redux</property>
     <property name="default-width">1180</property>
     <property name="default-height">925</property>
     <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>

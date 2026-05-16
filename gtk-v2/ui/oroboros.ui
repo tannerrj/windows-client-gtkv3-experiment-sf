@@ -9,7 +9,7 @@
   </object>
   <object class="GtkWindow" id="window_root">
     <property name="can-focus">False</property>
-    <property name="title" translatable="yes">Crossfire Client - GTK v2</property>
+    <property name="title" translatable="yes">Crossfire Client - GTK v3 - Oroboros</property>
     <property name="default-width">1019</property>
     <property name="default-height">690</property>
     <signal name="destroy" handler="on_window_destroy_event" swapped="no"/>
