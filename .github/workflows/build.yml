@@ -1,0 +1,69 @@
+name: Build GTK3 Client
+
+on:
+  push:
+    branches: [gtk3, master]
+  pull_request:
+    branches: [gtk3, master]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Full (sound + metaserver2)"
+            cmake_flags: >-
+              -DSOUND=ON
+              -DMETASERVER2=ON
+            apt_extra: libsdl2-mixer-dev libcurl4-openssl-dev
+            upload: true
+
+          - name: "Minimal (no optional deps)"
+            cmake_flags: >-
+              -DSOUND=OFF
+              -DMETASERVER2=OFF
+            apt_extra: ""
+            upload: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            cmake \
+            pkg-config \
+            libgtk-3-dev \
+            libgio-2.0-dev-bin \
+            libpng-dev \
+            perl \
+            valac \
+            libx11-dev \
+            ${{ matrix.apt_extra }}
+
+      - name: Configure
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            ${{ matrix.cmake_flags }}
+
+      - name: Build
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Test
+        # Exclude the live-network metaserver test; it is unreliable in CI.
+        run: ctest --test-dir build --output-on-failure -E metaserver
+
+      - name: Upload binary
+        if: matrix.upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: crossfire-client-gtk2-linux
+          path: build/gtk-v2/src/crossfire-client-gtk2
+          if-no-files-found: error
