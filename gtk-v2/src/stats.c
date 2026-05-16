@@ -103,26 +103,39 @@ static gboolean need_mapping_update;
 static int lastval[MAX_STAT_BARS], lastmax[MAX_STAT_BARS];
 
 /**
- * Initialize stat bar colors from hardcoded GTK3-compatible GdkRGBA values
- * matching the Standard theme. GTK3 removes the old RC style lookup APIs so
- * colors are now embedded directly.
+ * Initialize stat bar colors from the active CSS theme.  Falls back to
+ * Standard theme colors if the CSS classes are not found.  Safe to call
+ * multiple times; frees old allocations before re-initializing.
  */
 void stats_get_styles(void)
 {
-    static int has_init = 0;
-    if (has_init) {
-        return;
+    int i, j;
+
+    /* Free previous allocations. */
+    for (i = 0; i < MAX_STAT_BARS; i++) {
+        for (j = 0; j < NUM_STYLES; j++) {
+            g_free(bar_colors[i][j]);
+            bar_colors[i][j] = NULL;
+        }
     }
-    has_init = 1;
 
-    /* Standard theme colors: normal=green, low=red, super=green */
-    static const GdkRGBA color_normal  = {0.000, 0.812, 0.000, 1.0};
-    static const GdkRGBA color_low     = {0.812, 0.000, 0.000, 1.0};
-    static const GdkRGBA color_super   = {0.000, 0.812, 0.000, 1.0};
-    static const GdkRGBA color_grad_l  = {1.000, 0.000, 0.000, 1.0};
-    static const GdkRGBA color_grad_h  = {0.000, 0.502, 0.000, 1.0};
+    /* Hardcoded fallback colors matching the Standard theme. */
+    static const GdkRGBA d_normal  = {0.000, 0.812, 0.000, 1.0}; /* #00cf00 */
+    static const GdkRGBA d_low     = {0.812, 0.000, 0.000, 1.0}; /* #cf0000 */
+    static const GdkRGBA d_grad_l  = {1.000, 0.000, 0.000, 1.0}; /* red     */
+    static const GdkRGBA d_grad_h  = {0.000, 0.502, 0.000, 1.0}; /* green   */
+    static const GdkRGBA d_grad_s  = {0.000, 0.000, 1.000, 1.0}; /* blue    */
 
-    int i;
+    GdkRGBA c_normal = d_normal, c_low = d_low, c_super = d_normal;
+    GdkRGBA c_grad_l = d_grad_l, c_grad_n = d_grad_h, c_grad_s = d_grad_s;
+
+    get_css_fg_color("cf-stat-normal",      &c_normal);
+    get_css_fg_color("cf-stat-low",         &c_low);
+    get_css_fg_color("cf-stat-super",       &c_super);
+    get_css_fg_color("cf-stat-grad-low",    &c_grad_l);
+    get_css_fg_color("cf-stat-grad-normal", &c_grad_n);
+    get_css_fg_color("cf-stat-grad-super",  &c_grad_s);
+
     for (i = 0; i < MAX_STAT_BARS; i++) {
         bar_colors[i][STYLE_NORMAL]      = g_new(GdkRGBA, 1);
         bar_colors[i][STYLE_LOW]         = g_new(GdkRGBA, 1);
@@ -131,12 +144,12 @@ void stats_get_styles(void)
         bar_colors[i][STYLE_GRAD_LOW]    = g_new(GdkRGBA, 1);
         bar_colors[i][STYLE_GRAD_SUPER]  = g_new(GdkRGBA, 1);
 
-        *bar_colors[i][STYLE_NORMAL]      = color_normal;
-        *bar_colors[i][STYLE_LOW]         = color_low;
-        *bar_colors[i][STYLE_SUPER]       = color_super;
-        *bar_colors[i][STYLE_GRAD_NORMAL] = color_grad_h;
-        *bar_colors[i][STYLE_GRAD_LOW]    = color_grad_l;
-        *bar_colors[i][STYLE_GRAD_SUPER]  = color_super;
+        *bar_colors[i][STYLE_NORMAL]      = c_normal;
+        *bar_colors[i][STYLE_LOW]         = c_low;
+        *bar_colors[i][STYLE_SUPER]       = c_super;
+        *bar_colors[i][STYLE_GRAD_NORMAL] = c_grad_n;
+        *bar_colors[i][STYLE_GRAD_LOW]    = c_grad_l;
+        *bar_colors[i][STYLE_GRAD_SUPER]  = c_grad_s;
     }
 }
 

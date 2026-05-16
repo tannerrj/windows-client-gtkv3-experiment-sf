@@ -1,0 +1,101 @@
+/*
+ * Black theme for the Crossfire GTK client.
+ * Dark background with light text throughout.
+ */
+
+textview, textview text {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+treeview {
+    background-color: #1a1a1a;
+    color: #dddddd;
+}
+
+treeview:selected {
+    background-color: #444444;
+}
+
+/* Info pane server color names — adapted for dark background */
+.black_text    { color: #cccccc; }
+.white_text    { color: #ffffff; font-weight: bold; }
+.info_darkblue  { color: #8888ff; }
+.info_red       { color: #ff4444; }
+.info_orange    { color: orange; }
+.info_lightblue { color: dodgerblue; }
+.info_darkorange{ color: darkorange; }
+.info_green     { color: #44dd44; }
+.info_darkgreen { color: darkseagreen; }
+.info_grey      { color: #888888; }
+.info_brown     { color: sienna; }
+.info_yellow    { color: gold; }
+.info_tan       { color: khaki; }
+
+/* Message type styles — adapted for dark background */
+.msg_book              { color: #8888ff; }
+.msg_sign              { color: #8888ff; }
+.msg_dialog_npc        { color: #8888ff; }
+.msg_dialog_magic_ear  { color: #8888ff; }
+.msg_motd              { color: #44dd44; }
+.msg_admin_rules       { color: #44dd44; }
+.msg_admin_news        { color: #44dd44; }
+.msg_admin_player      { color: darkorange; }
+.msg_admin_dm          { color: #ff4444; }
+.msg_command_quests    { color: #ffffff; }
+.msg_command_dm        { color: #ff4444; }
+.msg_command_newplayer { color: dodgerblue; }
+.msg_attribute_protection_gain  { color: dodgerblue; }
+.msg_attribute_protection_loss  { color: #ff4444; }
+.msg_attribute_bad_effect_start { color: #ff4444; }
+.msg_attribute_level_gain       { color: dodgerblue; }
+.msg_attribute_level_loss       { color: #ff4444; }
+.msg_attribute_race  { color: dodgerblue; }
+.msg_attribute_god   { color: #8888ff; }
+.msg_skill_pray      { color: #ffffff; }
+.msg_skill_error     { color: #ff4444; }
+.msg_apply_success   { color: #8888ff; }
+.msg_apply_cursed    { color: #8888ff; }
+.msg_apply_trap      { color: #8888ff; }
+.msg_attack_did_hit  { color: #ff4444; }
+.msg_attack_nokey    { color: #8888ff; }
+.msg_communication_random { color: #ffffff; }
+.msg_communication_say    { color: #ffffff; }
+.msg_communication_me     { color: dodgerblue; }
+.msg_communication_tell   { color: orange; }
+.msg_communication_emote  { color: #ffffff; }
+.msg_communication_party  { color: #ffffff; }
+.msg_communication_shout  { color: #ff4444; }
+.msg_communication_chat   { color: dodgerblue; }
+.msg_spell_failure  { color: #888888; }
+.msg_spell_success  { color: #8888ff; }
+.msg_spell_error    { color: #8888ff; }
+.msg_spell_target   { color: orange; }
+.msg_item_remove    { color: sienna; }
+.msg_item_add       { color: dodgerblue; }
+.msg_item_info      { color: sienna; }
+.msg_misc           { color: #8888ff; }
+.msg_victim_swamp   { color: #ff4444; }
+.msg_victim_was_hit { color: #ff4444; }
+.msg_victim_died    { color: #8888ff; }
+
+/* Application widget color lookup classes.
+ * Stat bars use the same fill colors as Standard.
+ * Inventory and spell path colors use foreground text so they are
+ * visible against the dark background. */
+
+.cf-stat-normal      { color: #00cf00; }
+.cf-stat-low         { color: #cf0000; }
+.cf-stat-super       { color: #00cf00; }
+.cf-stat-grad-low    { color: red; }
+.cf-stat-grad-normal { color: green; }
+.cf-stat-grad-super  { color: blue; }
+
+.cf-inv-magical { color: skyblue; }
+.cf-inv-cursed  { color: red; }
+.cf-inv-unpaid  { color: gold; }
+
+.cf-spell-attuned  { color: green; }
+.cf-spell-repelled { color: orange; }
+.cf-spell-denied   { color: red; }
+.cf-spell-normal   { color: #cccccc; }

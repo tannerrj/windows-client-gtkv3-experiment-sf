@@ -28,6 +28,7 @@
 
 static GKeyFile *config;
 static GString *config_path;
+static GtkCssProvider *theme_provider = NULL;
 
 GtkWidget *config_dialog, *config_button_echo, *config_button_fasttcp,
     *config_button_timestamp, *config_button_grad_color,
@@ -74,20 +75,33 @@ static char *ui_name() {
 }
 
 /**
- * Load and apply the default CSS theme (THEME_DEFAULT) to all GTK screens.
- * Called once during startup before any windows are shown. Errors are logged
- * but do not abort startup.
+ * Load a CSS file and replace the current theme provider on the default screen.
+ * Errors are logged but do not abort. Safe to call multiple times.
  */
-void init_theme() {
-    GtkCssProvider *provider = gtk_css_provider_new();
+static void apply_theme_css(const char *path) {
+    GdkScreen *screen = gdk_screen_get_default();
+    if (theme_provider) {
+        gtk_style_context_remove_provider_for_screen(screen, GTK_STYLE_PROVIDER(theme_provider));
+        g_object_unref(theme_provider);
+        theme_provider = NULL;
+    }
+    theme_provider = gtk_css_provider_new();
     GError *error = NULL;
-    if (!gtk_css_provider_load_from_path(provider, THEME_DEFAULT, &error)) {
-        LOG(LOG_ERROR, "init_theme", "Failed to load style: %s\n", error->message);
+    if (!gtk_css_provider_load_from_path(theme_provider, path, &error)) {
+        LOG(LOG_ERROR, "apply_theme_css", "Failed to load CSS '%s': %s\n", path, error->message);
         g_error_free(error);
     } else {
-        LOG(LOG_DEBUG, "init_theme", "Loaded CSS from %s" THEME_DEFAULT);
+        LOG(LOG_DEBUG, "apply_theme_css", "Loaded CSS from '%s'", path);
     }
-    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(theme_provider),
+                                              GTK_STYLE_PROVIDER_PRIORITY_USER);
+}
+
+/**
+ * Load the default CSS theme at startup.
+ */
+void init_theme() {
+    apply_theme_css(THEME_DEFAULT);
 }
 
 /**
@@ -99,9 +113,9 @@ void init_theme() {
  *               convention compatibility).
  */
 void load_theme(int reload) {
-    /*
-     * Call client functions to reparse the custom widgets it controls.
-     */
+    if (theme) {
+        apply_theme_css(theme);
+    }
     info_get_styles();
     inventory_get_styles();
     stats_get_styles();

@@ -44,36 +44,51 @@ enum {
 };
 
 static const char *Style_Names[Style_Last] = {
-    "spell_attuned", "spell_repelled", "spell_denied", "spell_normal"
-}; /**< The names of theme file styles that are used in the spell dialog. */
+    "cf-spell-attuned", "cf-spell-repelled", "cf-spell-denied", "cf-spell-normal"
+}; /**< CSS class names for spell path highlight styles. */
 
 static gpointer description_renderer = NULL; /**< The cell renderer for the
                                               *   spell dialog descriptions.
                                               */
-static GdkRGBA spell_bg_colors[Style_Last];  /**< Background colors per spell path state. */
-static bool spell_styles_init = false;        /**< Whether spell colors have been initialized. */
-static int has_init = 0;                     /**< Whether or not the spell
-                                              *   dialog initialized since
-                                              *   the client started up.
-                                              */
+/* Per-style foreground/background colors read from the active CSS theme. */
+static GdkRGBA spell_fg_colors[Style_Last];
+static GdkRGBA spell_bg_colors[Style_Last];
+static bool     spell_has_fg[Style_Last];
+static bool     spell_has_bg[Style_Last];
+
+static int has_init = 0; /**< Whether the spell dialog has been initialized. */
+
 /**
- * Initialize spell path color highlights from hardcoded GdkRGBA values
- * matching the Standard theme. GTK3 replaces the old RC style lookup with
- * CSS; these defaults match the original Standard RC file colors.
+ * Initialize spell path highlight colors from the active CSS theme.
+ * Reads 'color' (foreground) and 'background-color' for each cf-spell-* class.
+ * Falls back to Standard theme backgrounds when CSS classes are absent.
+ * Safe to call multiple times.
  */
 void spell_get_styles(void)
 {
-    if (spell_styles_init) {
-        return;
+    int i;
+    for (i = 0; i < Style_Last; i++) {
+        spell_has_fg[i] = get_css_fg_color(Style_Names[i], &spell_fg_colors[i]);
+        spell_has_bg[i] = get_css_bg_color(Style_Names[i], &spell_bg_colors[i]);
     }
-    spell_styles_init = true;
 
-    /* Colors from Standard theme: attuned=lightgreen, repelled=orange,
-     * denied=tomato, normal=near-white */
-    gdk_rgba_parse(&spell_bg_colors[Style_Attuned],  "lightgreen");
-    gdk_rgba_parse(&spell_bg_colors[Style_Repelled], "orange");
-    gdk_rgba_parse(&spell_bg_colors[Style_Denied],   "tomato");
-    gdk_rgba_parse(&spell_bg_colors[Style_Normal],   "#F0F0F0");
+    /* Fall back to Standard theme backgrounds when no CSS is found. */
+    if (!spell_has_fg[Style_Attuned]  && !spell_has_bg[Style_Attuned]) {
+        gdk_rgba_parse(&spell_bg_colors[Style_Attuned],  "lightgreen");
+        spell_has_bg[Style_Attuned] = true;
+    }
+    if (!spell_has_fg[Style_Repelled] && !spell_has_bg[Style_Repelled]) {
+        gdk_rgba_parse(&spell_bg_colors[Style_Repelled], "orange");
+        spell_has_bg[Style_Repelled] = true;
+    }
+    if (!spell_has_fg[Style_Denied]   && !spell_has_bg[Style_Denied]) {
+        gdk_rgba_parse(&spell_bg_colors[Style_Denied],   "tomato");
+        spell_has_bg[Style_Denied] = true;
+    }
+    if (!spell_has_fg[Style_Normal]   && !spell_has_bg[Style_Normal]) {
+        gdk_rgba_parse(&spell_bg_colors[Style_Normal],   "#F0F0F0");
+        spell_has_bg[Style_Normal] = true;
+    }
 }
 
 /**
@@ -183,7 +198,7 @@ void update_spell_information(void)
     GtkTreeIter iter;
     char buf[MAX_BUF];
     int row_style_idx;
-    GdkRGBA *background=NULL;
+    GdkRGBA *background, *foreground;
 
     /* If the window/spellstore hasn't been created, return. */
     if (!has_init) {
@@ -192,28 +207,36 @@ void update_spell_information(void)
 
     cpl.spells_updated = 0;
 
-    /* We could try to do this in spell_get_styles, but if the window isn't
-     * active, it won't work.  This is called whenever the window is made
-     * active, so we know it will work, and the time to set this info here,
-     * even though it may not change often, is pretty trivial.
-     */
-    if (!spell_styles_init) {
-        spell_get_styles();
-    }
+    /* Apply spell path colors to the color-key eventboxes. */
     for (i = 0; i < Style_Last; i++) {
+        if (!spell_eventbox[i]) { continue; }
         GtkCssProvider *provider = gtk_css_provider_new();
-        char css[128];
-        snprintf(css, sizeof(css),
-                 "* { background-color: rgba(%d,%d,%d,%.3f); }",
-                 (int)(spell_bg_colors[i].red   * 255),
-                 (int)(spell_bg_colors[i].green * 255),
-                 (int)(spell_bg_colors[i].blue  * 255),
-                 spell_bg_colors[i].alpha);
-        gtk_css_provider_load_from_data(provider, css, -1, NULL);
-        gtk_style_context_add_provider(
-            gtk_widget_get_style_context(spell_eventbox[i]),
-            GTK_STYLE_PROVIDER(provider),
-            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        char css[256];
+        if (spell_has_bg[i]) {
+            snprintf(css, sizeof(css),
+                     "* { background-color: rgba(%d,%d,%d,%.3f); }",
+                     (int)(spell_bg_colors[i].red   * 255),
+                     (int)(spell_bg_colors[i].green * 255),
+                     (int)(spell_bg_colors[i].blue  * 255),
+                     spell_bg_colors[i].alpha);
+        } else if (spell_has_fg[i]) {
+            /* Dark theme: color the label text instead of the box background. */
+            snprintf(css, sizeof(css),
+                     "label { color: rgba(%d,%d,%d,%.3f); }",
+                     (int)(spell_fg_colors[i].red   * 255),
+                     (int)(spell_fg_colors[i].green * 255),
+                     (int)(spell_fg_colors[i].blue  * 255),
+                     spell_fg_colors[i].alpha);
+        } else {
+            css[0] = '\0';
+        }
+        if (css[0]) {
+            gtk_css_provider_load_from_data(provider, css, -1, NULL);
+            gtk_style_context_add_provider(
+                gtk_widget_get_style_context(spell_eventbox[i]),
+                GTK_STYLE_PROVIDER(provider),
+                GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        }
         g_object_unref(provider);
     }
 
@@ -239,7 +262,8 @@ void update_spell_information(void)
             row_style_idx = Style_Normal;
         }
 
-        background = &spell_bg_colors[row_style_idx];
+        background = spell_has_bg[row_style_idx] ? &spell_bg_colors[row_style_idx] : NULL;
+        foreground = spell_has_fg[row_style_idx] ? &spell_fg_colors[row_style_idx] : NULL;
 
         gtk_list_store_set(
             spell_store, &iter,
@@ -251,7 +275,7 @@ void update_spell_information(void)
             LIST_SKILL, spell->skill,
             LIST_DESCRIPTION, spell->message,
             LIST_BACKGROUND, background,
-            LIST_FOREGROUND, (GdkRGBA *)NULL,
+            LIST_FOREGROUND, foreground,
             LIST_FONT, (PangoFontDescription *)NULL,
             LIST_MAX_SP, (spell->sp > spell->grace) ? spell->sp : spell->grace,
             LIST_TAG, spell->tag,

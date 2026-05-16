@@ -38,7 +38,7 @@ The values here match the traditional values used.
 }
 
 .info_darkorange {
-    color: darkorange2;
+    color: darkorange;
 }
 
 .info_green {
@@ -50,7 +50,7 @@ The values here match the traditional values used.
 }
 
 .info_grey {
-    color: grey50;
+    color: grey;
 }
 
 .info_brown {
@@ -186,7 +186,7 @@ The values here match the traditional values used.
     color: seagreen;
 }
 .msg_admin_player {
-    color: darkorange2;
+    color: darkorange;
 }
 .msg_admin_dm {
     color: red;
@@ -274,7 +274,7 @@ The values here match the traditional values used.
 }
 
 .msg_spell_failure {
-    color: grey50;
+    color: grey;
 }
 .msg_spell_success {
     color: navy;
@@ -309,3 +309,24 @@ The values here match the traditional values used.
 .msg_victim_died {
     color: navy;
 }
+
+/* Application widget color lookup classes.
+ * These are read programmatically by stats_get_styles(), inventory_get_styles(),
+ * and spell_get_styles() to populate widget colors. Use 'color' for stat bar
+ * fill colors and 'background-color' for row highlight backgrounds. */
+
+.cf-stat-normal      { color: #00cf00; }
+.cf-stat-low         { color: #cf0000; }
+.cf-stat-super       { color: #00cf00; }
+.cf-stat-grad-low    { color: red; }
+.cf-stat-grad-normal { color: green; }
+.cf-stat-grad-super  { color: blue; }
+
+.cf-inv-magical { background-color: skyblue; }
+.cf-inv-cursed  { background-color: tomato; }
+.cf-inv-unpaid  { background-color: wheat; }
+
+.cf-spell-attuned  { background-color: lightgreen; }
+.cf-spell-repelled { background-color: orange; }
+.cf-spell-denied   { background-color: tomato; }
+.cf-spell-normal   { background-color: #F0F0F0; }

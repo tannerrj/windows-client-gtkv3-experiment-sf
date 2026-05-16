@@ -314,6 +314,49 @@ extern bool arm_mapedit;
  * @param style      Style name to get values from.
  * @param base_style Base style for the widget to compare against.
  */
+/**
+ * Read a CSS property ('color' or 'background-color') for a named class and
+ * compare it against the default widget style.  Returns TRUE if the class
+ * overrides that property; sets *out to the color when TRUE.
+ */
+static gboolean css_read_color(const char *class_name, gboolean is_bg, GdkRGBA *out) {
+    GtkWidgetPath *path = gtk_widget_path_new();
+    gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+
+    GtkStyleContext *base = gtk_style_context_new();
+    gtk_style_context_set_path(base, path);
+
+    GtkStyleContext *sc = gtk_style_context_new();
+    gtk_style_context_set_path(sc, path);
+    gtk_style_context_add_class(sc, class_name);
+
+    GdkRGBA c, bc;
+    if (is_bg) {
+        gtk_style_context_get_background_color(sc,   GTK_STATE_FLAG_NORMAL, &c);
+        gtk_style_context_get_background_color(base, GTK_STATE_FLAG_NORMAL, &bc);
+    } else {
+        gtk_style_context_get_color(sc,   GTK_STATE_FLAG_NORMAL, &c);
+        gtk_style_context_get_color(base, GTK_STATE_FLAG_NORMAL, &bc);
+    }
+    gboolean found = !gdk_rgba_equal(&c, &bc);
+    if (found && out) { *out = c; }
+
+    g_object_unref(sc);
+    g_object_unref(base);
+    gtk_widget_path_free(path);
+    return found;
+}
+
+/** Read the 'color' (foreground) CSS property for a named class. */
+gboolean get_css_fg_color(const char *class_name, GdkRGBA *out) {
+    return css_read_color(class_name, FALSE, out);
+}
+
+/** Read the 'background-color' CSS property for a named class. */
+gboolean get_css_bg_color(const char *class_name, GdkRGBA *out) {
+    return css_read_color(class_name, TRUE, out);
+}
+
 void set_text_tag_from_style(GtkTextTag *tag, GtkStyleContext *sc, GtkStyleContext *base_style) {
     GdkRGBA fg, bg, bfg, bbg;
     gtk_style_context_get_color(sc, GTK_STATE_FLAG_NORMAL, &fg);

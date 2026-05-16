@@ -58,6 +58,8 @@ extern void get_map_image_size(int face, guint8 *w, guint8 *h);
 extern void init_image_cache_data(void);
 extern void do_new_image(guint8 *data, PixmapInfo *pi);
 /* info.c */
+extern gboolean get_css_fg_color(const char *class_name, GdkRGBA *out);
+extern gboolean get_css_bg_color(const char *class_name, GdkRGBA *out);
 extern void set_text_tag_from_style(GtkTextTag *tag, GtkStyleContext *sc, GtkStyleContext *base_style);
 extern void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf);
 extern void add_style_to_textbuffer(Info_Pane *pane, void *unused);

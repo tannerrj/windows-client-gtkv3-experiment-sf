@@ -64,14 +64,16 @@ enum Styles {
     Style_Magical = 0, Style_Cursed, Style_Unpaid, Style_Locked, Style_Applied, Style_Last
 };
 
-/* The name of these styles in the rc file */
+/* CSS class names for each inventory style. */
 static const char *Style_Names[Style_Last] = {
-    "inv_magical", "inv_cursed", "inv_unpaid", "inv_locked", "inv_applied"
+    "cf-inv-magical", "cf-inv-cursed", "cf-inv-unpaid", "cf-inv-locked", "cf-inv-applied"
 };
 
-/* Background colors per inventory style (from Standard theme). */
+/* Per-style foreground/background colors read from the active CSS theme. */
+static GdkRGBA inv_fg_colors[Style_Last];
 static GdkRGBA inv_bg_colors[Style_Last];
-static bool inv_styles_init = false;
+static bool     inv_has_fg[Style_Last];
+static bool     inv_has_bg[Style_Last];
 
 /*
  * The basic idea of the NoteBook_Info structure is to hold everything we need
@@ -509,24 +511,32 @@ static void setup_list_columns(GtkWidget *treeview) {
 }
 
 /**
- * Initialize inventory row highlight colors from hardcoded GdkRGBA values
- * matching the Standard theme. GTK3 removes the old RC style lookup APIs so
- * colors are embedded directly here.
+ * Initialize inventory row highlight colors from the active CSS theme.
+ * Reads 'color' (foreground) and 'background-color' for each cf-inv-* class.
+ * Falls back to Standard theme backgrounds when CSS classes are absent.
+ * Safe to call multiple times.
  */
 void inventory_get_styles() {
-    if (inv_styles_init) {
-        return;
+    int i;
+    for (i = 0; i < Style_Last; i++) {
+        inv_has_fg[i] = get_css_fg_color(Style_Names[i], &inv_fg_colors[i]);
+        inv_has_bg[i] = get_css_bg_color(Style_Names[i], &inv_bg_colors[i]);
     }
-    inv_styles_init = true;
 
-    /* Colors from Standard theme (base[NORMAL]):
-     * magical=skyblue, cursed=tomato, unpaid=wheat, locked/applied=no bg */
-    gdk_rgba_parse(&inv_bg_colors[Style_Magical], "skyblue");
-    gdk_rgba_parse(&inv_bg_colors[Style_Cursed],  "tomato");
-    gdk_rgba_parse(&inv_bg_colors[Style_Unpaid],  "wheat");
-    /* Locked and Applied: no special background color */
-    gdk_rgba_parse(&inv_bg_colors[Style_Locked],  "white");
-    gdk_rgba_parse(&inv_bg_colors[Style_Applied],  "white");
+    /* If neither fg nor bg was found for the basic styles, fall back to
+     * Standard theme backgrounds so the client is usable without a theme. */
+    if (!inv_has_fg[Style_Magical] && !inv_has_bg[Style_Magical]) {
+        gdk_rgba_parse(&inv_bg_colors[Style_Magical], "skyblue");
+        inv_has_bg[Style_Magical] = true;
+    }
+    if (!inv_has_fg[Style_Cursed] && !inv_has_bg[Style_Cursed]) {
+        gdk_rgba_parse(&inv_bg_colors[Style_Cursed], "tomato");
+        inv_has_bg[Style_Cursed] = true;
+    }
+    if (!inv_has_fg[Style_Unpaid] && !inv_has_bg[Style_Unpaid]) {
+        gdk_rgba_parse(&inv_bg_colors[Style_Unpaid], "wheat");
+        inv_has_bg[Style_Unpaid] = true;
+    }
 }
 
 /**
@@ -795,6 +805,7 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
         GtkTreeIter *new, GtkTreeIter *parent, int color) {
     char buf[256], buf1[256];
     GdkRGBA *background = NULL;
+    GdkRGBA *foreground = NULL;
 
     if (it->weight < 0) {
         strcpy(buf, " ");
@@ -805,7 +816,8 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
     if (color) {
         int style_idx = get_row_style(it);
         if (style_idx >= 0) {
-            background = &inv_bg_colors[style_idx];
+            if (inv_has_bg[style_idx]) { background = &inv_bg_colors[style_idx]; }
+            if (inv_has_fg[style_idx]) { foreground = &inv_fg_colors[style_idx]; }
         }
     }
 
@@ -815,7 +827,7 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
             LIST_NAME, buf1,
             LIST_WEIGHT, buf,
             LIST_BACKGROUND, background,
-            LIST_FOREGROUND, (GdkRGBA *)NULL,
+            LIST_FOREGROUND, foreground,
             LIST_FONT, (PangoFontDescription *)NULL,
             LIST_OBJECT, it,
             LIST_TYPE, it->type,
