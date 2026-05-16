@@ -58,7 +58,7 @@ static const char * const stat_style_names[NUM_STYLES] = {
 /* We really only care about the colors, as there isn't anything else we can
  * change about the progressbar widget itself.
  */
-GdkColor    *bar_colors[MAX_STAT_BARS][NUM_STYLES];
+GdkRGBA *bar_colors[MAX_STAT_BARS][NUM_STYLES];
 
 
 /* The table for showing skill exp is an x & y grid.  Note for proper
@@ -103,40 +103,40 @@ static gboolean need_mapping_update;
 static int lastval[MAX_STAT_BARS], lastmax[MAX_STAT_BARS];
 
 /**
- * Gets the style information for the stat bars (only portion of the window
- * right now that has custom style support.
+ * Initialize stat bar colors from hardcoded GTK3-compatible GdkRGBA values
+ * matching the Standard theme. GTK3 removes the old RC style lookup APIs so
+ * colors are now embedded directly.
  */
 void stats_get_styles(void)
 {
-    static int has_init=0;
-    int stat_bar, sub_style;
-    char    buf[MAX_BUF];
-    GtkStyle *tmp_style;
-
-    if (!has_init) {
-        memset(bar_colors, 0, sizeof(GdkColor*) * MAX_STAT_BARS * NUM_STYLES);
+    static int has_init = 0;
+    if (has_init) {
+        return;
     }
+    has_init = 1;
 
-    for (stat_bar=0; stat_bar < MAX_STAT_BARS; stat_bar++) {
-        for (sub_style=0; sub_style < NUM_STYLES; sub_style++) {
-            snprintf(buf, sizeof(buf), "%s_%s", stat_bar_names[stat_bar], stat_style_names[sub_style]);
+    /* Standard theme colors: normal=green, low=red, super=green */
+    static const GdkRGBA color_normal  = {0.000, 0.812, 0.000, 1.0};
+    static const GdkRGBA color_low     = {0.812, 0.000, 0.000, 1.0};
+    static const GdkRGBA color_super   = {0.000, 0.812, 0.000, 1.0};
+    static const GdkRGBA color_grad_l  = {1.000, 0.000, 0.000, 1.0};
+    static const GdkRGBA color_grad_h  = {0.000, 0.502, 0.000, 1.0};
 
-            tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, buf, G_TYPE_NONE);
+    int i;
+    for (i = 0; i < MAX_STAT_BARS; i++) {
+        bar_colors[i][STYLE_NORMAL]      = g_new(GdkRGBA, 1);
+        bar_colors[i][STYLE_LOW]         = g_new(GdkRGBA, 1);
+        bar_colors[i][STYLE_SUPER]       = g_new(GdkRGBA, 1);
+        bar_colors[i][STYLE_GRAD_NORMAL] = g_new(GdkRGBA, 1);
+        bar_colors[i][STYLE_GRAD_LOW]    = g_new(GdkRGBA, 1);
+        bar_colors[i][STYLE_GRAD_SUPER]  = g_new(GdkRGBA, 1);
 
-            if (!tmp_style) {
-                if (bar_colors[stat_bar][sub_style]) {
-                    free(bar_colors[stat_bar][sub_style]);
-                    bar_colors[stat_bar][sub_style] = NULL;
-                }
-                LOG(LOG_INFO, "stats.c::stats_get_styles()", "Unable to find style '%s'", buf);
-            } else {
-                if (!bar_colors[stat_bar][sub_style]) {
-                    bar_colors[stat_bar][sub_style] = calloc(1, sizeof(GdkColor));
-                }
-                memcpy(bar_colors[stat_bar][sub_style],
-                       &tmp_style->base[GTK_STATE_SELECTED], sizeof(GdkColor));
-            }
-        }
+        *bar_colors[i][STYLE_NORMAL]      = color_normal;
+        *bar_colors[i][STYLE_LOW]         = color_low;
+        *bar_colors[i][STYLE_SUPER]       = color_super;
+        *bar_colors[i][STYLE_GRAD_NORMAL] = color_grad_h;
+        *bar_colors[i][STYLE_GRAD_LOW]    = color_grad_l;
+        *bar_colors[i][STYLE_GRAD_SUPER]  = color_super;
     }
 }
 
@@ -211,8 +211,8 @@ void stats_init(GtkWidget *window_root) {
          */
         for (i=0, x=0, y=0; i < SKILL_BOXES_X * SKILL_BOXES_Y; i++) {
             statwindow.skill_exp[i] = gtk_label_new("");
-            gtk_table_attach(GTK_TABLE(statwindow.table_skills_exp), statwindow.skill_exp[i],
-                             x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
+            gtk_grid_attach(GTK_GRID(statwindow.table_skills_exp), statwindow.skill_exp[i],
+                            x, y, 1, 1);
             gtk_widget_show(statwindow.skill_exp[i]);
             x++;
             if (x == SKILL_BOXES_X) {
@@ -227,8 +227,8 @@ void stats_init(GtkWidget *window_root) {
 
     for (i=0, x=0, y=0; i < PROTECTION_BOXES_X * PROTECTION_BOXES_Y; i++) {
         statwindow.resists[i] = gtk_label_new("");
-        gtk_table_attach(GTK_TABLE(statwindow.table_protections), statwindow.resists[i],
-                         x, x+1, y, y+1, GTK_EXPAND, 0, 0, 0);
+        gtk_grid_attach(GTK_GRID(statwindow.table_protections), statwindow.resists[i],
+                        x, y, 1, 1);
         gtk_widget_show(statwindow.resists[i]);
         x++;
         if (x == PROTECTION_BOXES_X) {
@@ -236,7 +236,7 @@ void stats_init(GtkWidget *window_root) {
             y++;
         }
     }
-    /*stats_get_styles();*/
+    stats_get_styles();
 }
 
 /**
@@ -293,11 +293,44 @@ static char *format_si_number(gint64 number) {
  * a stat shouldn't ever change color when it is low, the style should
  * dictate that.
  */
+/**
+ * Apply a GdkRGBA background color to a progress bar widget via a CSS provider.
+ * Passing NULL removes any previously applied custom color.
+ *
+ * @param bar   The GtkProgressBar widget to style.
+ * @param color RGBA color to apply, or NULL to clear.
+ */
+static void set_bar_color(GtkWidget *bar, const GdkRGBA *color) {
+    GtkStyleContext *ctx = gtk_widget_get_style_context(bar);
+    static GtkCssProvider *providers[MAX_STAT_BARS] = {NULL};
+    int idx = -1;
+    for (int i = 0; i < MAX_STAT_BARS; i++) {
+        if (stat_bar[i] == bar) { idx = i; break; }
+    }
+    if (idx < 0) return;
+    if (providers[idx]) {
+        gtk_style_context_remove_provider(ctx, GTK_STYLE_PROVIDER(providers[idx]));
+        g_object_unref(providers[idx]);
+        providers[idx] = NULL;
+    }
+    if (color) {
+        char css[128];
+        snprintf(css, sizeof(css),
+                 "progressbar progress { background-color: rgba(%d,%d,%d,%.3f); }",
+                 (int)(color->red * 255), (int)(color->green * 255),
+                 (int)(color->blue * 255), color->alpha);
+        providers[idx] = gtk_css_provider_new();
+        gtk_css_provider_load_from_data(providers[idx], css, -1, NULL);
+        gtk_style_context_add_provider(ctx, GTK_STYLE_PROVIDER(providers[idx]),
+                                       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    }
+}
+
 void update_stat(int stat_no, gint64 max_stat, gint64 current_stat,
                  gint64 statbar_max, gint64 statbar_stat, int can_alert)
 {
     float bar;
-    GdkColor ncolor, *set_color=NULL;
+    GdkRGBA ncolor, *set_color=NULL;
 
     /* If nothing changed, don't need to do anything */
     if (lastval[stat_no] == current_stat && lastmax[stat_no] == max_stat) {
@@ -318,7 +351,7 @@ void update_stat(int stat_no, gint64 max_stat, gint64 current_stat,
          * in a gradual style. Color is blended from low to high
          */
 
-        GdkColor        *hcolor, *lcolor;
+        GdkRGBA         *hcolor, *lcolor;
         float       diff;
 
         /* First thing we do is figure out current values, and thus what color
@@ -348,67 +381,10 @@ void update_stat(int stat_no, gint64 max_stat, gint64 current_stat,
          */
 
         if (lcolor && hcolor) {
-#if 1
-            memcpy(&ncolor, lcolor, sizeof(GdkColor));
-
-            ncolor.red += (hcolor->red - lcolor->red) * diff;
+            ncolor = *lcolor;
+            ncolor.red   += (hcolor->red   - lcolor->red)   * diff;
             ncolor.green += (hcolor->green - lcolor->green) * diff;
-            ncolor.blue += (hcolor->blue - lcolor->blue) * diff;
-#else
-            /* This is an alternate coloring method that works when using
-             * saturated colors for the base points.  This mimics the old
-             * code, and works good when using such saturated colors (eg, one
-             * of the RGB triplets being 255, others 0, like red, green, or
-             * blue).  However, this doesn't produce very good results when
-             * not using those colors - if say magenta and yellow are chosen
-             * as the two colors, this code results in the colors basically
-             * getting near white in the middle values.  For saturated colors,
-             * the code below would produce nice bright yellow for the middle
-             * values, where as the code above produces more a dark yellow,
-             * since it only takes half the red and half the green.  However,
-             * the code above still produces useful results even with that
-             * limitation, and it works for all colors, so it is the code
-             * enabled.  It perhaps be interesting to have some detection
-             * logic on how the colors are actually set - if only a single
-             * r/g/b value is set for the two colors, then use this logic
-             * here, otherwise the above logic or something.
-             * MSW 2007-01-24
-             */
-            if (diff > 0.5) {
-                memcpy(&ncolor, hcolor, sizeof(GdkColor));
-
-                if (lcolor->red > hcolor->red) {
-                    ncolor.red = 2 * lcolor->red * (1.0 - diff);
-                }
-
-                if (lcolor->green > hcolor->green) {
-                    ncolor.green = 2 * lcolor->green * (1.0 - diff);
-                }
-
-                if (lcolor->blue > hcolor->blue) {
-                    ncolor.blue = 2 * lcolor->blue * (1.0 - diff);
-                }
-
-            } else {
-                memcpy(&ncolor, lcolor, sizeof(GdkColor));
-
-                if (hcolor->red > lcolor->red) {
-                    ncolor.red = 2 * hcolor->red * diff;
-                }
-
-                if (hcolor->green > lcolor->green) {
-                    ncolor.green = 2 * hcolor->green * diff;
-                }
-
-                if (hcolor->blue > lcolor->blue) {
-                    ncolor.blue = 2 * hcolor->blue * diff;
-                }
-            }
-#endif
-#if 0
-            fprintf(stderr,"stat %d, val %d, r/g/b=%d/%d/%d\n",
-                    stat_no, current_stat, ncolor.red, ncolor.green, ncolor.blue);
-#endif
+            ncolor.blue  += (hcolor->blue  - lcolor->blue)  * diff;
             set_color = &ncolor;
         }
     } else {
@@ -429,13 +405,7 @@ void update_stat(int stat_no, gint64 max_stat, gint64 current_stat,
 
     GtkProgressBar *curr_bar = GTK_PROGRESS_BAR(stat_bar[stat_no]);
 
-    /* It may be a waste, but we set the color everytime here - it isn't very
-     * costly, and keeps us from tracing the last color we set.  Note that
-     * set_color could be null, which means it reverts back to normal color.
-     */
-    gtk_widget_modify_base(stat_bar[stat_no], GTK_STATE_SELECTED, set_color);
-    /* The line above doesn't work sometimes, but then, the next one does. */
-    gtk_widget_modify_bg(stat_bar[stat_no], GTK_STATE_PRELIGHT, set_color);
+    set_bar_color(stat_bar[stat_no], set_color);
 
     char *label;
 

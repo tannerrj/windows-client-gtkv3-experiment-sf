@@ -36,12 +36,13 @@ static gboolean map_updated = FALSE;
 
 GtkWidget *map_notebook;
 static GtkWidget *map_drawing_area;
+static cairo_surface_t *map_surface = NULL; /* persistent off-screen map buffer */
 
 // Forward declarations for events
 static gboolean map_button_event(GtkWidget *widget,
         GdkEventButton *event, gpointer user_data);
 static gboolean map_expose_event(GtkWidget *widget,
-        GdkEventExpose *event, gpointer user_data);
+        cairo_t *cr, gpointer user_data);
 
 /**
  * Calculate and set desired map size based on map window size.
@@ -548,19 +549,12 @@ static void gtk_map_redraw() {
     }
     cairo_destroy(cr);
 
-    // Copy the double buffer on the map drawing area.
-    cairo_t *map_cr = gdk_cairo_create(gtk_widget_get_window(map_drawing_area));
-    if (use_config[CONFIG_MAPSCALE] != 100) {
-        cairo_scale(map_cr, scale, scale);
+    /* Store the rendered surface and schedule a draw via the GTK3 draw signal. */
+    if (map_surface) {
+        cairo_surface_destroy(map_surface);
     }
-    cairo_set_source_surface(map_cr, cst, 0, 0);
-    if (use_config[CONFIG_MAPSCALE] % 100 == 0) {
-        cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
-    }
-    cairo_paint(map_cr);
-    cairo_destroy(map_cr);
-
-    cairo_surface_destroy(cst);
+    map_surface = cst;
+    gtk_widget_queue_draw(map_drawing_area);
 }
 
 /**
@@ -612,12 +606,28 @@ void draw_map() {
 }
 
 /**
- * GTK "draw" signal handler for the map drawing area. Triggers a full map
- * redraw and returns FALSE to allow further propagation of the event.
+ * GTK "draw" signal handler for the map drawing area. Blits the pre-rendered
+ * map surface to the provided cairo context and returns FALSE to allow further
+ * propagation of the event.
+ *
+ * @param widget    The map drawing area widget.
+ * @param cr        Cairo context provided by the GTK3 draw signal.
+ * @param user_data Unused.
  */
-static gboolean map_expose_event(GtkWidget *widget, GdkEventExpose *event,
+static gboolean map_expose_event(GtkWidget *widget, cairo_t *cr,
         gpointer user_data) {
-    draw_map();
+    if (!map_surface) {
+        return FALSE;
+    }
+    float scale = use_config[CONFIG_MAPSCALE] / 100.0;
+    if (use_config[CONFIG_MAPSCALE] != 100) {
+        cairo_scale(cr, scale, scale);
+    }
+    cairo_set_source_surface(cr, map_surface, 0, 0);
+    if (use_config[CONFIG_MAPSCALE] % 100 == 0) {
+        cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
+    }
+    cairo_paint(cr);
     return FALSE;
 }
 

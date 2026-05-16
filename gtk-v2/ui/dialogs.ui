@@ -120,17 +120,13 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
           </packing>
         </child>
         <child>
-          <object class="GtkTable" id="msgctrl_table">
+          <object class="GtkGrid" id="msgctrl_table">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="n_rows">3</property>
-            <property name="n_columns">4</property>
             <child>
-              <object class="GtkTable" id="msgctrl_table_parameters">
+              <object class="GtkGrid" id="msgctrl_table_parameters">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="n_rows">2</property>
-                <property name="n_columns">2</property>
                 <child>
                   <object class="GtkLabel" id="msgctrl_label_timer">
                     <property name="visible">True</property>
@@ -138,13 +134,13 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                     <property name="label" translatable="yes">Timer</property>
                     <property name="justify">right</property>
                     <property name="xalign">1</property>
+                    <property name="margin_start">2</property>
                   </object>
                   <packing>
+                    <property name="left_attach">0</property>
                     <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                    <property name="x_padding">2</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -160,16 +156,15 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                     <property name="adjustment">adjustment13</property>
                     <property name="snap_to_ticks">True</property>
                     <property name="numeric">True</property>
+                    <property name="margin_start">2</property>
+                    <property name="margin_top">2</property>
+                    <property name="margin_bottom">2</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
                     <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                    <property name="x_padding">2</property>
-                    <property name="y_padding">2</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -185,14 +180,13 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                     <property name="adjustment">adjustment14</property>
                     <property name="snap_to_ticks">True</property>
                     <property name="numeric">True</property>
+                    <property name="margin_start">2</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                    <property name="x_padding">2</property>
-                    <property name="y_padding">2</property>
+                    <property name="top_attach">0</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -202,18 +196,21 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                     <property name="label" translatable="yes">Output Count</property>
                     <property name="justify">right</property>
                     <property name="xalign">1</property>
+                    <property name="margin_start">2</property>
                   </object>
                   <packing>
-                    <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                    <property name="x_padding">2</property>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
               </object>
               <packing>
-                <property name="bottom_attach">2</property>
-                <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
-                <property name="y_options">GTK_FILL</property>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">2</property>
               </packing>
             </child>
             <child>
@@ -223,26 +220,26 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
               </object>
               <packing>
                 <property name="left_attach">2</property>
-                <property name="right_attach">3</property>
-                <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkLabel" id="msgctrl_label_critical">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xpad">2</property>
                 <property name="label" translatable="yes">Critical</property>
                 <property name="xalign">0</property>
+                <property name="margin_start">2</property>
+                <property name="margin_top">2</property>
+                <property name="margin_bottom">2</property>
               </object>
               <packing>
                 <property name="left_attach">3</property>
-                <property name="right_attach">4</property>
-                <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="y_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="x_padding">2</property>
-                <property name="y_padding">2</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -250,19 +247,17 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Choose one or more message panels that should display each message type.</property>
-                <property name="xpad">2</property>
                 <property name="label" translatable="yes">Messages</property>
                 <property name="xalign">0</property>
+                <property name="margin_start">2</property>
+                <property name="margin_top">2</property>
+                <property name="margin_bottom">2</property>
               </object>
               <packing>
                 <property name="left_attach">3</property>
-                <property name="right_attach">4</property>
                 <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-                <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="y_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="x_padding">2</property>
-                <property name="y_padding">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -270,50 +265,50 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Choose one or more message panels that should display each message type.</property>
-                <property name="xpad">2</property>
                 <property name="label" translatable="yes">Messages</property>
                 <property name="xalign">0</property>
+                <property name="margin_start">2</property>
+                <property name="margin_top">2</property>
+                <property name="margin_bottom">2</property>
               </object>
               <packing>
                 <property name="left_attach">2</property>
-                <property name="right_attach">3</property>
                 <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-                <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="y_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="x_padding">2</property>
-                <property name="y_padding">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
-              <object class="GtkHSeparator" id="msgctrl_hseparator_header">
+              <object class="GtkSeparator" id="msgctrl_hseparator_header">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="orientation">horizontal</property>
+                <property name="margin_top">2</property>
+                <property name="margin_bottom">2</property>
               </object>
               <packing>
-                <property name="right_attach">4</property>
+                <property name="left_attach">0</property>
                 <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
-                <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="y_padding">2</property>
+                <property name="width">4</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkLabel" id="Suppmsgctrl_label_suppress">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xpad">2</property>
                 <property name="label" translatable="yes">Suppress</property>
                 <property name="use_markup">True</property>
                 <property name="xalign">0</property>
+                <property name="margin_start">2</property>
+                <property name="margin_top">2</property>
+                <property name="margin_bottom">2</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="y_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="x_padding">2</property>
-                <property name="y_padding">2</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
             <child>
@@ -321,19 +316,17 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">When identical messages arrive in close succession, do not output them all, but report how many arrived.</property>
-                <property name="xpad">2</property>
                 <property name="label" translatable="yes">Duplicates</property>
                 <property name="xalign">0</property>
+                <property name="margin_start">2</property>
+                <property name="margin_top">2</property>
+                <property name="margin_bottom">2</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
                 <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-                <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="y_options">GTK_SHRINK | GTK_FILL</property>
-                <property name="x_padding">2</property>
-                <property name="y_padding">2</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
               </packing>
             </child>
           </object>
@@ -344,9 +337,10 @@ Kevin Zheng &lt;kevinz5000@gmail.com&gt;</property>
           </packing>
         </child>
         <child>
-          <object class="GtkHSeparator" id="msgctrl_hseparator_buttons">
+          <object class="GtkSeparator" id="msgctrl_hseparator_buttons">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="orientation">horizontal</property>
           </object>
           <packing>
             <property name="expand">False</property>

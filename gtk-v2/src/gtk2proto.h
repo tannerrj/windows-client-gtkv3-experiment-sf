@@ -60,7 +60,7 @@ extern void do_new_image(guint8 *data, PixmapInfo *pi);
 /* info.c */
 extern void set_text_tag_from_style(GtkTextTag *tag, GtkStyleContext *sc, GtkStyleContext *base_style);
 extern void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf);
-extern void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *base_style);
+extern void add_style_to_textbuffer(Info_Pane *pane, void *unused);
 extern void info_get_styles(void);
 extern void info_init(GtkWidget *window_root);
 extern void add_marked_text_to_pane(Info_Pane *pane, const char *message, int type, int subtype, int orig_color);

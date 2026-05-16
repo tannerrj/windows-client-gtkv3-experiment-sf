@@ -19,6 +19,7 @@
 #include "client.h"
 
 #include <assert.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 
 #include "image.h"
@@ -49,42 +50,30 @@ static const char *Style_Names[Style_Last] = {
 static gpointer description_renderer = NULL; /**< The cell renderer for the
                                               *   spell dialog descriptions.
                                               */
-static GtkStyle *spell_styles[Style_Last];   /**< The actual styles loaded, or
-                                              *   NULL if no styles were found.
-                                              */
+static GdkRGBA spell_bg_colors[Style_Last];  /**< Background colors per spell path state. */
+static bool spell_styles_init = false;        /**< Whether spell colors have been initialized. */
 static int has_init = 0;                     /**< Whether or not the spell
                                               *   dialog initialized since
                                               *   the client started up.
                                               */
 /**
- * Gets the style information for the inventory windows.  This is a separate
- * function because if the user changes styles, it can be nice to re-load the
- * configuration.  The style for the inventory/look is a bit special.  That is
- * because with gtk, styles are widget wide - all rows in the widget would use
- * the same style.  We want to adjust the styles based on other attributes.
+ * Initialize spell path color highlights from hardcoded GdkRGBA values
+ * matching the Standard theme. GTK3 replaces the old RC style lookup with
+ * CSS; these defaults match the original Standard RC file colors.
  */
 void spell_get_styles(void)
 {
-    int i;
-    GtkStyle *tmp_style;
-    static int style_has_init=0;
-
-    for (i=0; i < Style_Last; i++) {
-        if (style_has_init && spell_styles[i]) {
-            g_object_unref(spell_styles[i]);
-        }
-        tmp_style =
-            gtk_rc_get_style_by_paths(
-                gtk_settings_get_default(), NULL, Style_Names[i], G_TYPE_NONE);
-        if (tmp_style) {
-            spell_styles[i] = g_object_ref(tmp_style);
-        } else {
-            LOG(LOG_INFO, "spells.c::spell_get_styles",
-                "Unable to find style for %s", Style_Names[i]);
-            spell_styles[i] = NULL;
-        }
+    if (spell_styles_init) {
+        return;
     }
-    style_has_init = 1;
+    spell_styles_init = true;
+
+    /* Colors from Standard theme: attuned=lightgreen, repelled=orange,
+     * denied=tomato, normal=near-white */
+    gdk_rgba_parse(&spell_bg_colors[Style_Attuned],  "lightgreen");
+    gdk_rgba_parse(&spell_bg_colors[Style_Repelled], "orange");
+    gdk_rgba_parse(&spell_bg_colors[Style_Denied],   "tomato");
+    gdk_rgba_parse(&spell_bg_colors[Style_Normal],   "#F0F0F0");
 }
 
 /**
@@ -193,10 +182,8 @@ void update_spell_information(void)
     Spell *spell;
     GtkTreeIter iter;
     char buf[MAX_BUF];
-    GtkStyle *row_style;
-    GdkColor *foreground=NULL;
-    GdkColor *background=NULL;
-    PangoFontDescription *font=NULL;
+    int row_style_idx;
+    GdkRGBA *background=NULL;
 
     /* If the window/spellstore hasn't been created, return. */
     if (!has_init) {
@@ -210,18 +197,24 @@ void update_spell_information(void)
      * active, so we know it will work, and the time to set this info here,
      * even though it may not change often, is pretty trivial.
      */
-    for (i=0; i < Style_Last; i++) {
-        if (spell_styles[i]) {
-            gtk_widget_modify_fg(spell_label[i],
-                                 GTK_STATE_NORMAL, &spell_styles[i]->text[GTK_STATE_NORMAL]);
-            gtk_widget_modify_font(spell_label[i], spell_styles[i]->font_desc);
-            gtk_widget_modify_bg(spell_eventbox[i],
-                                 GTK_STATE_NORMAL, &spell_styles[i]->base[GTK_STATE_NORMAL]);
-        } else {
-            gtk_widget_modify_fg(spell_label[i],GTK_STATE_NORMAL, NULL);
-            gtk_widget_modify_font(spell_label[i], NULL);
-            gtk_widget_modify_bg(spell_eventbox[i],GTK_STATE_NORMAL, NULL);
-        }
+    if (!spell_styles_init) {
+        spell_get_styles();
+    }
+    for (i = 0; i < Style_Last; i++) {
+        GtkCssProvider *provider = gtk_css_provider_new();
+        char css[128];
+        snprintf(css, sizeof(css),
+                 "* { background-color: rgba(%d,%d,%d,%.3f); }",
+                 (int)(spell_bg_colors[i].red   * 255),
+                 (int)(spell_bg_colors[i].green * 255),
+                 (int)(spell_bg_colors[i].blue  * 255),
+                 spell_bg_colors[i].alpha);
+        gtk_css_provider_load_from_data(provider, css, -1, NULL);
+        gtk_style_context_add_provider(
+            gtk_widget_get_style_context(spell_eventbox[i]),
+            GTK_STYLE_PROVIDER(provider),
+            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        g_object_unref(provider);
     }
 
     gtk_list_store_clear(spell_store);
@@ -237,24 +230,16 @@ void update_spell_information(void)
                      "%d Grace", spell->grace);
 
         if (spell->path & cpl.stats.denied) {
-            row_style = spell_styles[Style_Denied];
+            row_style_idx = Style_Denied;
         } else if (spell->path & cpl.stats.repelled) {
-            row_style = spell_styles[Style_Repelled];
+            row_style_idx = Style_Repelled;
         } else if (spell->path & cpl.stats.attuned) {
-            row_style = spell_styles[Style_Attuned];
+            row_style_idx = Style_Attuned;
         } else {
-            row_style = spell_styles[Style_Normal];
+            row_style_idx = Style_Normal;
         }
 
-        if (row_style) {
-            foreground = &row_style->text[GTK_STATE_NORMAL];
-            background = &row_style->base[GTK_STATE_NORMAL];
-            font = row_style->font_desc;
-        } else {
-            foreground=NULL;
-            background=NULL;
-            font=NULL;
-        }
+        background = &spell_bg_colors[row_style_idx];
 
         gtk_list_store_set(
             spell_store, &iter,
@@ -266,8 +251,8 @@ void update_spell_information(void)
             LIST_SKILL, spell->skill,
             LIST_DESCRIPTION, spell->message,
             LIST_BACKGROUND, background,
-            LIST_FOREGROUND, foreground,
-            LIST_FONT, font,
+            LIST_FOREGROUND, (GdkRGBA *)NULL,
+            LIST_FONT, (PangoFontDescription *)NULL,
             LIST_MAX_SP, (spell->sp > spell->grace) ? spell->sp : spell->grace,
             LIST_TAG, spell->tag,
             -1
@@ -312,19 +297,19 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
         spell_store =
             gtk_list_store_new(
                 14,
-                G_TYPE_OBJECT,  /* Image - not used */
-                G_TYPE_STRING,  /* Name */
-                G_TYPE_INT,     /* Level */
-                G_TYPE_INT,     /* Time */
-                G_TYPE_STRING,  /* SP/Grace */
-                G_TYPE_INT,     /* Damage */
-                G_TYPE_STRING,  /* Skill name */
-                G_TYPE_INT,     /* Spell path */
-                G_TYPE_STRING,  /* Description */
-                GDK_TYPE_COLOR, /* Background color of the entry */
+                G_TYPE_OBJECT,       /* Image - not used */
+                G_TYPE_STRING,       /* Name */
+                G_TYPE_INT,          /* Level */
+                G_TYPE_INT,          /* Time */
+                G_TYPE_STRING,       /* SP/Grace */
+                G_TYPE_INT,          /* Damage */
+                G_TYPE_STRING,       /* Skill name */
+                G_TYPE_INT,          /* Spell path */
+                G_TYPE_STRING,       /* Description */
+                GDK_TYPE_RGBA,       /* Background color of the entry */
                 G_TYPE_INT,
                 G_TYPE_INT,
-                GDK_TYPE_COLOR,
+                GDK_TYPE_RGBA,       /* Foreground color (unused, kept for column index) */
                 PANGO_TYPE_FONT_DESCRIPTION
             );
 
@@ -355,9 +340,9 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
         gtk_tree_view_column_set_sort_column_id(column, LIST_NAME);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "background-gdk", LIST_BACKGROUND);
+            column, renderer, "background-rgba", LIST_BACKGROUND);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "foreground-gdk", LIST_FOREGROUND);
+            column, renderer, "foreground-rgba", LIST_FOREGROUND);
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
 
@@ -368,9 +353,9 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
         gtk_tree_view_column_set_sort_column_id(column, LIST_LEVEL);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "background-gdk", LIST_BACKGROUND);
+            column, renderer, "background-rgba", LIST_BACKGROUND);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "foreground-gdk", LIST_FOREGROUND);
+            column, renderer, "foreground-rgba", LIST_FOREGROUND);
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
 
@@ -385,9 +370,9 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
          */
         gtk_tree_view_column_set_sort_column_id(column, LIST_MAX_SP);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "background-gdk", LIST_BACKGROUND);
+            column, renderer, "background-rgba", LIST_BACKGROUND);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "foreground-gdk", LIST_FOREGROUND);
+            column, renderer, "foreground-rgba", LIST_FOREGROUND);
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
 
@@ -398,9 +383,9 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
         gtk_tree_view_column_set_sort_column_id(column, LIST_DAMAGE);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "background-gdk", LIST_BACKGROUND);
+            column, renderer, "background-rgba", LIST_BACKGROUND);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "foreground-gdk", LIST_FOREGROUND);
+            column, renderer, "foreground-rgba", LIST_FOREGROUND);
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
 
@@ -409,9 +394,9 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
         gtk_tree_view_column_set_sort_column_id(column, LIST_SKILL);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "background-gdk", LIST_BACKGROUND);
+            column, renderer, "background-rgba", LIST_BACKGROUND);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "foreground-gdk", LIST_FOREGROUND);
+            column, renderer, "foreground-rgba", LIST_FOREGROUND);
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
 
@@ -421,9 +406,9 @@ void on_spells_activate(GtkMenuItem *menuitem, gpointer user_data) {
                      "Description", renderer, "text", LIST_DESCRIPTION, NULL);
         gtk_tree_view_append_column(GTK_TREE_VIEW(spell_treeview), column);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "background-gdk", LIST_BACKGROUND);
+            column, renderer, "background-rgba", LIST_BACKGROUND);
         gtk_tree_view_column_add_attribute(
-            column, renderer, "foreground-gdk", LIST_FOREGROUND);
+            column, renderer, "foreground-rgba", LIST_FOREGROUND);
         gtk_tree_view_column_add_attribute(
             column, renderer, "font-desc", LIST_FONT);
         /*

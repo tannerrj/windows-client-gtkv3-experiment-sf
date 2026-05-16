@@ -22,29 +22,24 @@
 #include "main.h"
 
 /**
- * Render the entire magic map into the magic_map drawing area. Switches the
- * map notebook to the magic map page. Each tile is drawn as a filled rectangle
- * in the color indicated by its magic map value. Does nothing if the player
- * has no magic map data (cpl.magicmap == NULL).
+ * Request a redraw of the magic map and switch the notebook to the magic map
+ * page. Sets cpl.showmagic and computes tile resolution from the current
+ * widget allocation. Does nothing if cpl.magicmap is NULL.
  */
 void draw_magic_map() {
     if (!cpl.magicmap) {
-        // Do nothing if player has no magic map data.
         return;
     } else {
         cpl.showmagic = 1;
     }
 
-    /*
-     * Have to set this so that the gtk_widget_show below actually creates the
-     * widget.  Switch to this page when person actually casts magic map spell.
-     */
     gtk_notebook_set_current_page(GTK_NOTEBOOK(map_notebook), MAGIC_MAP_PAGE);
 
-    GdkWindow *window = gtk_widget_get_window(magic_map);
+    int width = gtk_widget_get_allocated_width(magic_map);
+    int height = gtk_widget_get_allocated_height(magic_map);
 
-    cpl.mapxres = gdk_window_get_width(window) / cpl.mmapx;
-    cpl.mapyres = gdk_window_get_height(window) / cpl.mmapy;
+    cpl.mapxres = width / cpl.mmapx;
+    cpl.mapyres = height / cpl.mmapy;
     if (cpl.mapxres < 1 || cpl.mapyres < 1) {
         LOG(LOG_WARNING, "draw_magic_map",
             "magic map resolution less than 1, map is %dx%d", cpl.mmapx,
@@ -52,49 +47,63 @@ void draw_magic_map() {
         return;
     }
 
-    /*
-     * In theory, cpl.mapxres and cpl.mapyres do not have to be the same.
-     * However, it probably makes sense to keep them the same value.  Need to
-     * take the smaller value.
-     */
     if (cpl.mapxres > cpl.mapyres) {
         cpl.mapxres = cpl.mapyres;
     } else {
         cpl.mapyres = cpl.mapxres;
     }
 
-    cairo_t *cr = gdk_cairo_create(window);
+    gtk_widget_queue_draw(magic_map);
+}
+
+/**
+ * Request a redraw of the player position flash on the magic map.
+ */
+void magic_map_flash_pos() {
+    gtk_widget_queue_draw(magic_map);
+}
+
+/**
+ * GTK "draw" signal handler for the magic map drawing area. Renders all magic
+ * map tiles and the player position flash using the cairo context provided by
+ * the signal. Returns FALSE to allow further signal propagation.
+ *
+ * @param widget The magic map drawing area.
+ * @param cr     Cairo context clipped to the drawing area.
+ */
+gboolean on_drawingarea_magic_map_expose_event(GtkWidget *widget, cairo_t *cr) {
+    if (!cpl.magicmap) {
+        return FALSE;
+    }
+
+    int width = gtk_widget_get_allocated_width(widget);
+    int height = gtk_widget_get_allocated_height(widget);
+
+    cpl.mapxres = width / cpl.mmapx;
+    cpl.mapyres = height / cpl.mmapy;
+    if (cpl.mapxres < 1 || cpl.mapyres < 1) {
+        return FALSE;
+    }
+    if (cpl.mapxres > cpl.mapyres) {
+        cpl.mapxres = cpl.mapyres;
+    } else {
+        cpl.mapyres = cpl.mapxres;
+    }
+
     for (int y = 0; y < cpl.mmapy; y++) {
         for (int x = 0; x < cpl.mmapx; x++) {
             guint8 val = cpl.magicmap[y * cpl.mmapx + x];
-            gdk_cairo_set_source_color(cr, &root_color[val & FACE_COLOR_MASK]);
-            cairo_rectangle(cr, cpl.mapxres * x, cpl.mapyres * y, cpl.mapxres,
-                            cpl.mapyres);
+            gdk_cairo_set_source_rgba(cr, &root_color[val & FACE_COLOR_MASK]);
+            cairo_rectangle(cr, cpl.mapxres * x, cpl.mapyres * y,
+                            cpl.mapxres, cpl.mapyres);
             cairo_fill(cr);
         }
     }
-    cairo_destroy(cr);
-}
 
-/**
- * Flash the player's position on the magic map.
- */
-void magic_map_flash_pos() {
-    GdkWindow *window = gtk_widget_get_window(magic_map);
-    cairo_t *cr = gdk_cairo_create(window);
-    gdk_cairo_set_source_color(cr, &root_color[(cpl.showmagic & 2) ? 0 : 1]);
+    gdk_cairo_set_source_rgba(cr, &root_color[(cpl.showmagic & 2) ? 0 : 1]);
     cairo_rectangle(cr, cpl.mapxres * cpl.pmapx, cpl.mapyres * cpl.pmapy,
                     cpl.mapxres, cpl.mapyres);
     cairo_fill(cr);
-    cairo_destroy(cr);
-}
 
-/**
- * GTK "draw" signal handler for the magic map drawing area. Redraws the magic
- * map on every expose event and returns FALSE to allow further signal
- * propagation.
- */
-gboolean on_drawingarea_magic_map_expose_event() {
-    draw_magic_map();
     return FALSE;
 }

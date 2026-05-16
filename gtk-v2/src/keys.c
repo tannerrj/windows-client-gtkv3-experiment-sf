@@ -2044,8 +2044,8 @@ static int keybind_overwrite_confirm(struct keybind *kb) {
                  "Key already in use",
                  GTK_WINDOW(keybinding_window),
                  GTK_DIALOG_MODAL,
-                 GTK_STOCK_YES, 1,
-                 GTK_STOCK_NO, 2,
+                 "_Yes", 1,
+                 "_No", 2,
                  NULL);
     get_key_modchars(kb, 1, buf2);
     snprintf(buf, sizeof(buf), "Overwrite this binding?\n  (%s) %s\n%s",

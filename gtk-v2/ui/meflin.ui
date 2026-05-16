@@ -1559,12 +1559,9 @@
                         <property name="border-width">2</property>
                         <property name="resize-mode">queue</property>
                         <child>
-                          <object class="GtkTable" id="table_protections">
+                          <object class="GtkGrid" id="table_protections">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="n-rows">6</property>
-                            <property name="n-columns">6</property>
-                            <property name="homogeneous">True</property>
                             <child>
                               <placeholder/>
                             </child>
@@ -1806,12 +1803,9 @@
                         <property name="border-width">2</property>
                         <property name="resize-mode">queue</property>
                         <child>
-                          <object class="GtkTable" id="table_skills_exp">
+                          <object class="GtkGrid" id="table_skills_exp">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="n-rows">6</property>
-                            <property name="n-columns">6</property>
-                            <property name="homogeneous">True</property>
                             <child>
                               <placeholder/>
                             </child>
@@ -2172,11 +2166,9 @@
                                         <property name="visible">True</property>
                                         <property name="can-focus">True</property>
                                         <child>
-                                          <object class="GtkTable" id="inv_table">
+                                          <object class="GtkGrid" id="inv_table">
                                             <property name="visible">True</property>
                                             <property name="can-focus">True</property>
-                                            <property name="n-rows">11</property>
-                                            <property name="n-columns">10</property>
                                             
                                             <child>
                                               <placeholder/>

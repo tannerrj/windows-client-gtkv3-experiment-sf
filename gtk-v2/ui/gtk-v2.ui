@@ -1276,12 +1276,9 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTable" id="table_protections">
+                          <object class="GtkGrid" id="table_protections">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="n_rows">6</property>
-                            <property name="n_columns">6</property>
-                            <property name="homogeneous">True</property>
                             <child>
                               <placeholder/>
                             </child>
@@ -1664,11 +1661,9 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <child>
-                                      <object class="GtkTable" id="inv_table">
+                                      <object class="GtkGrid" id="inv_table">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="n_rows">11</property>
-                                        <property name="n_columns">10</property>
                                         <child>
                                           <placeholder/>
                                         </child>

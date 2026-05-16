@@ -20,7 +20,7 @@
 #define MAIN_H
 
 #define NUM_COLORS 13
-extern GdkColor root_color[NUM_COLORS];
+extern GdkRGBA root_color[NUM_COLORS];
 extern GtkWidget *window_root, *spinbutton_count;
 extern GtkBuilder *dialog_xml, *window_xml;
 

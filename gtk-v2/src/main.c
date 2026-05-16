@@ -99,7 +99,7 @@ static GOptionEntry options[] = {
 
 char window_xml_file[MAX_BUF];
 
-GdkColor root_color[NUM_COLORS];
+GdkRGBA root_color[NUM_COLORS];
 
 GtkBuilder *dialog_xml, *window_xml;
 GtkWidget *window_root, *magic_map, *connect_window;
@@ -469,8 +469,8 @@ static void init_ui() {
 
     /* Set up colors before doing the other initialization functions */
     for (i = 0; i < NUM_COLORS; i++) {
-        if (!gdk_color_parse(colorname[i], &root_color[i])) {
-            fprintf(stderr, "gdk_color_parse failed (%s)\n", colorname[i]);
+        if (!gdk_rgba_parse(&root_color[i], colorname[i])) {
+            fprintf(stderr, "gdk_rgba_parse failed (%s)\n", colorname[i]);
         }
     }
 

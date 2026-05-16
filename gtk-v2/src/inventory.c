@@ -18,6 +18,7 @@
 
 #include "client.h"
 
+#include <stdbool.h>
 #include <gtk/gtk.h>
 
 #include "image.h"
@@ -37,8 +38,8 @@
 
 GtkWidget *treeview_look;
 
-/** Color to use to indicate that an item is applied. */
-static const GdkColor applied_color = {0, 50000, 50000, 50000};
+/** Color to use to indicate that an item is applied (medium gray). */
+static const GdkRGBA applied_color = {0.7629, 0.7629, 0.7629, 1.0};
 
 static GtkTreeStore *store_look;
 static GtkWidget *encumbrance_current;
@@ -68,8 +69,9 @@ static const char *Style_Names[Style_Last] = {
     "inv_magical", "inv_cursed", "inv_unpaid", "inv_locked", "inv_applied"
 };
 
-/* Actual styles as loaded.  May be null if no style found. */
-static GtkStyle *inv_styles[Style_Last];
+/* Background colors per inventory style (from Standard theme). */
+static GdkRGBA inv_bg_colors[Style_Last];
+static bool inv_styles_init = false;
 
 /*
  * The basic idea of the NoteBook_Info structure is to hold everything we need
@@ -470,8 +472,8 @@ static void setup_list_columns(GtkWidget *treeview) {
     gtk_tree_view_column_set_sort_column_id(column, LIST_BASENAME);
 
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
-    gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
-    gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+    gtk_tree_view_column_add_attribute(column, renderer, "background-rgba", LIST_BACKGROUND);
+    gtk_tree_view_column_add_attribute(column, renderer, "foreground-rgba", LIST_FOREGROUND);
     gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
     gtk_tree_view_set_expander_column(GTK_TREE_VIEW(treeview), column);
     gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);
@@ -492,8 +494,8 @@ static void setup_list_columns(GtkWidget *treeview) {
 
     gtk_tree_view_column_set_sort_column_id(column, LIST_WEIGHT);
     gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
-    gtk_tree_view_column_add_attribute(column, renderer, "background-gdk", LIST_BACKGROUND);
-    gtk_tree_view_column_add_attribute(column, renderer, "foreground-gdk", LIST_FOREGROUND);
+    gtk_tree_view_column_add_attribute(column, renderer, "background-rgba", LIST_BACKGROUND);
+    gtk_tree_view_column_add_attribute(column, renderer, "foreground-rgba", LIST_FOREGROUND);
     gtk_tree_view_column_add_attribute(column, renderer, "font-desc", LIST_FONT);
     /*
      * Really, we never really do selections - clicking on an object causes a
@@ -507,32 +509,24 @@ static void setup_list_columns(GtkWidget *treeview) {
 }
 
 /**
- * Gets the style information for the inventory windows.  This is a separate
- * function because if the user changes styles, it can be nice to re-load the
- * configuration.  The style for the inventory/look is a bit special.  That is
- * because with gtk, styles are widget wide - all rows in the widget would use
- * the same style.  We want to adjust the styles based on other attributes.
+ * Initialize inventory row highlight colors from hardcoded GdkRGBA values
+ * matching the Standard theme. GTK3 removes the old RC style lookup APIs so
+ * colors are embedded directly here.
  */
 void inventory_get_styles() {
-    int i;
-    GtkStyle *tmp_style;
-    static int has_init = 0;
-
-    for (i = 0; i < Style_Last; i++) {
-        if (has_init && inv_styles[i]) {
-            g_object_unref(inv_styles[i]);
-        }
-        tmp_style = gtk_rc_get_style_by_paths(gtk_settings_get_default(), NULL, Style_Names[i],
-                G_TYPE_NONE);
-        if (tmp_style) {
-            inv_styles[i] = g_object_ref(tmp_style);
-        } else {
-            LOG(LOG_INFO, "inventory.c::inventory_get_styles", "Unable to find style for %s",
-                    Style_Names[i]);
-            inv_styles[i] = NULL;
-        }
+    if (inv_styles_init) {
+        return;
     }
-    has_init = 1;
+    inv_styles_init = true;
+
+    /* Colors from Standard theme (base[NORMAL]):
+     * magical=skyblue, cursed=tomato, unpaid=wheat, locked/applied=no bg */
+    gdk_rgba_parse(&inv_bg_colors[Style_Magical], "skyblue");
+    gdk_rgba_parse(&inv_bg_colors[Style_Cursed],  "tomato");
+    gdk_rgba_parse(&inv_bg_colors[Style_Unpaid],  "wheat");
+    /* Locked and Applied: no special background color */
+    gdk_rgba_parse(&inv_bg_colors[Style_Locked],  "white");
+    gdk_rgba_parse(&inv_bg_colors[Style_Applied],  "white");
 }
 
 /**
@@ -543,7 +537,7 @@ void inventory_get_styles() {
 void inventory_init(GtkWidget *window_root) {
     int i;
 
-    /*inventory_get_styles();*/
+    inventory_get_styles();
 
     inv_notebook = GTK_WIDGET(gtk_builder_get_object(window_xml,
             "notebook_inv"));
@@ -569,10 +563,10 @@ void inventory_init(GtkWidget *window_root) {
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_POINTER,
-            GDK_TYPE_COLOR,
+            GDK_TYPE_RGBA,
             G_TYPE_INT,
             G_TYPE_STRING,
-            GDK_TYPE_COLOR,
+            GDK_TYPE_RGBA,
             PANGO_TYPE_FONT_DESCRIPTION);
 
     store_look = gtk_tree_store_new(LIST_NUM_COLUMNS,
@@ -581,10 +575,10 @@ void inventory_init(GtkWidget *window_root) {
             G_TYPE_STRING,
             G_TYPE_STRING,
             G_TYPE_POINTER,
-            GDK_TYPE_COLOR,
+            GDK_TYPE_RGBA,
             G_TYPE_INT,
             G_TYPE_STRING,
-            GDK_TYPE_COLOR,
+            GDK_TYPE_RGBA,
             PANGO_TYPE_FONT_DESCRIPTION);
 
     gtk_tree_view_set_model(GTK_TREE_VIEW(treeview_look), GTK_TREE_MODEL(store_look));
@@ -710,32 +704,25 @@ void set_weight_limit(guint32 wlim) {
 }
 
 /**
+ * Return the inventory style index for an item based on its flags, following
+ * the precedence documented in the Standard theme file, or -1 for no style.
  *
- * @param it
- * @return a style based on values in it
+ * @param it Item to classify.
+ * @return   Style index into inv_bg_colors[], or -1.
  */
-static GtkStyle *get_row_style(item *it) {
-    int style;
-
-    /* Note that this ordering is documented in the sample rc file.
-     * it would be nice if this precedence could be more easily
-     * setable by the end user.
-     */
+static int get_row_style(item *it) {
     if (it->unpaid) {
-        style = Style_Unpaid;
+        return Style_Unpaid;
     } else if (it->cursed || it->damned) {
-        style = Style_Cursed;
+        return Style_Cursed;
     } else if (it->magical) {
-        style = Style_Magical;
+        return Style_Magical;
     } else if (it->applied) {
-        style = Style_Applied;
+        return Style_Applied;
     } else if (it->locked) {
-        style = Style_Locked;
-    } else {
-        return NULL; /* No matching style */
+        return Style_Locked;
     }
-
-    return inv_styles[style];
+    return -1;
 }
 
 /***************************************************************************
@@ -807,9 +794,7 @@ void item_event_item_changed(item * it) {
 static void add_object_to_store(item *it, GtkTreeStore *store,
         GtkTreeIter *new, GtkTreeIter *parent, int color) {
     char buf[256], buf1[256];
-    GdkColor *foreground = NULL, *background = NULL;
-    PangoFontDescription *font = NULL;
-    GtkStyle *row_style;
+    GdkRGBA *background = NULL;
 
     if (it->weight < 0) {
         strcpy(buf, " ");
@@ -818,15 +803,9 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
     }
     snprintf(buf1, 255, "%s %s", it->d_name, it->flags);
     if (color) {
-        row_style = get_row_style(it);
-        if (row_style) {
-            /*
-             * Even if the user doesn't define these, we should still get get
-             * defaults from the system.
-             */
-            foreground = &row_style->text[GTK_STATE_NORMAL];
-            background = &row_style->base[GTK_STATE_NORMAL];
-            font = row_style->font_desc;
+        int style_idx = get_row_style(it);
+        if (style_idx >= 0) {
+            background = &inv_bg_colors[style_idx];
         }
     }
 
@@ -836,8 +815,8 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
             LIST_NAME, buf1,
             LIST_WEIGHT, buf,
             LIST_BACKGROUND, background,
-            LIST_FOREGROUND, foreground,
-            LIST_FONT, font,
+            LIST_FOREGROUND, (GdkRGBA *)NULL,
+            LIST_FONT, (PangoFontDescription *)NULL,
             LIST_OBJECT, it,
             LIST_TYPE, it->type,
             LIST_BASENAME, it->s_name,
@@ -1011,7 +990,7 @@ static void draw_inv_table(int animate) {
         }
     }
 
-    gtk_table_resize(GTK_TABLE(inv_table), rows, columns);
+    /* GtkGrid auto-resizes; no explicit resize needed. */
 
     x = 0;
     y = 0;
@@ -1021,8 +1000,8 @@ static void draw_inv_table(int animate) {
             gtk_widget_set_size_request(INV_TABLE_AT(x, y, columns), image_size,
                                         image_size);
 
-            gtk_table_attach(GTK_TABLE(inv_table), INV_TABLE_AT(x, y, columns),
-                    x, x + 1, y, y + 1, GTK_FILL, GTK_FILL, 0, 0);
+            gtk_grid_attach(GTK_GRID(inv_table), INV_TABLE_AT(x, y, columns),
+                            x, y, 1, 1);
         }
         if (animate) {
             /* This is an object with animations */
@@ -1081,13 +1060,31 @@ static void draw_inv_table(int animate) {
             /* Draw the inventory icon image to the table. */
             gtk_widget_queue_draw(INV_TABLE_AT(x, y, columns));
 
-            // Draw an extra indicator if the item is applied.
-            if (tmp->applied) {
-                gtk_widget_modify_bg(INV_TABLE_AT(x, y, columns),
-                        GTK_STATE_NORMAL, &applied_color);
-            } else {
-                gtk_widget_modify_bg(INV_TABLE_AT(x, y, columns),
-                        GTK_STATE_NORMAL, NULL);
+            /* Draw an extra indicator if the item is applied via CSS. */
+            {
+                GtkWidget *cell = INV_TABLE_AT(x, y, columns);
+                GtkStyleContext *ctx = gtk_widget_get_style_context(cell);
+                GtkCssProvider *prev =
+                    g_object_get_data(G_OBJECT(cell), "inv-color-provider");
+                if (prev) {
+                    gtk_style_context_remove_provider(ctx, GTK_STYLE_PROVIDER(prev));
+                    g_object_set_data(G_OBJECT(cell), "inv-color-provider", NULL);
+                }
+                if (tmp->applied) {
+                    char css[128];
+                    GtkCssProvider *provider = gtk_css_provider_new();
+                    snprintf(css, sizeof(css),
+                             "* { background-color: rgba(%d,%d,%d,%.3f); }",
+                             (int)(applied_color.red   * 255),
+                             (int)(applied_color.green * 255),
+                             (int)(applied_color.blue  * 255),
+                             applied_color.alpha);
+                    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+                    gtk_style_context_add_provider(ctx, GTK_STYLE_PROVIDER(provider),
+                                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+                    g_object_set_data_full(G_OBJECT(cell), "inv-color-provider",
+                                           provider, g_object_unref);
+                }
             }
 
             gtk_widget_show(INV_TABLE_AT(x, y, columns));

@@ -389,10 +389,9 @@ void add_tags_to_textbuffer(Info_Pane *pane, GtkTextBuffer *textbuf)
  * the run of the client.  So this has to be separate to note it it might be a
  * reload.
  *
- * @param pane       Message panel number to update.
- * @param base_style Base style if retrieved - may be null.
+ * @param pane Message panel number to update.
  */
-void add_style_to_textbuffer(Info_Pane *pane, GtkStyle *_base_style) {
+void add_style_to_textbuffer(Info_Pane *pane, void *_unused) {
     int i;
     char    style_name[MAX_BUF];
 
@@ -1242,19 +1241,12 @@ void menu_clear(void)
  */
 void msgctrl_init(GtkWidget *window_root)
 {
-    GtkTableChild* child;               /* Used to get number of title rows */
     GtkWidget*     widget;              /* Used to connect widgets          */
-    GtkTable*      table;               /* The table of checkbox controls   */
-    GList*         list;                /* Iterator: table children         */
+    GtkGrid*       grid;               /* The grid of checkbox controls    */
     guint          pane;                /* Iterator: client message panes   */
     guint          type;                /* Iterator: message types          */
     guint          row;                 /* Attachment for current widget    */
-    guint          title_cols;          /* Title cols in msgctrl_table      */
-    guint          title_rows;          /* Title rows in msgctrl_table      */
-                                        /* The cols/rows will describe the
-                                         * prefilled table data already in
-                                         * msgctrl_table when first loaded
-                                         * from the .ui file containing it. */
+    guint          title_rows;          /* Pre-filled header rows in grid   */
     /*
      * Get the window pointer and a pointer to the tree of widgets it contains
      */
@@ -1272,80 +1264,55 @@ void msgctrl_init(GtkWidget *window_root)
         GTK_WIDGET(gtk_builder_get_object(dialog_xml,"msgctrl_spinbutton_timer"));
 
     /*
-     * Locate the table widget to fill with controls and its structure.
+     * Locate the grid widget to fill with controls and count existing header
+     * rows by scanning for occupied cells in column 0.
      */
     msgctrl_table = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "msgctrl_table"));
-    table = GTK_TABLE(msgctrl_table);
+    grid = GTK_GRID(msgctrl_table);
     /*
-     * How many title rows were set up in the table?  The title rows are the
-     * non-empty rows.  Row numbers are zero-based.  IMPORTANT: It is assumed
-     * any row with at least one widget has widgets in all columns.  WARNING:
-     * This assumption is unwise if client layouts begin to be implemented to
-     * have fewer message panes than the code supports!
+     * Count pre-existing header rows by probing column 0. GtkGrid auto-resizes
+     * so no explicit resize is needed — just attach children at the right row.
      */
-     gtk_table_get_size(table, &title_rows, &title_cols);
+    title_rows = 0;
+    while (gtk_grid_get_child_at(grid, 0, title_rows) != NULL) {
+        title_rows++;
+    }
 
-    /*
-     * The table is defined in the dialog created with the design tool, but
-     * the dimensions of the table are not known at design time, so it must be
-     * resized and built up at run-time.
-     *
-     * The table columns are:  message type description, message buffer
-     * enable, and one enable per message pane supported by the client code.
-     * The client layout might not support all of the panes, but all of them
-     * will be put into the table.
-     *
-     * The table rows are: the header rows + the number of message types that
-     * the client and server support.  We assume the XML file designer did
-     * properly set up the header rows.  Since MSG_TYPE_LAST is 1 more than
-     * the actual number of types, and since title_rows is one less than the
-     * actual number of header rows, they balance out when added together.
-     */
-    gtk_table_resize(table,
-                     (guint)(MSG_TYPE_LAST + title_rows), (guint)(1 + 1 + NUM_TEXT_VIEWS));
     /*
      * Now we need to put labels and checkboxes in each of the empty rows and
      * initialize the state of the checkboxes to match the default settings.
-     * It helps if we change title_rows to a one-based number.  Walk through
-     * each message type and set the corresponding row of the table it needs
-     * to go with.  type is one-based.  The msgctrl_defaults and _widget
-     * arrays are zero based.
+     * Walk through each message type and set the corresponding row of the grid
+     * it needs to go with.  type is zero-based; msgctrl_defaults and _widget
+     * arrays are also zero-based.
      */
-    title_rows += 1;
     for (type = 0; type < MSG_TYPE_LAST - 1; type += 1) {
         row = type + title_rows;
         /*
-         * The message type description.  Just put the the message type name
-         * in a label, left-justified with some padding to keep it away from
-         * the dialog frame and perhaps the neighboring checkbox.
+         * The message type description.  Left-justified with a small margin.
          */
         widget = gtk_label_new(msgctrl_defaults[type].description);
-        gtk_misc_set_alignment(GTK_MISC(widget), 0.0f, 0.5f);
-        gtk_misc_set_padding(GTK_MISC(widget), 2, 0);
-        gtk_table_attach_defaults(table, widget, 0, 1, row, row + 1);
+        gtk_widget_set_halign(widget, GTK_ALIGN_START);
+        gtk_widget_set_valign(widget, GTK_ALIGN_CENTER);
+        gtk_widget_set_margin_start(widget, 2);
+        gtk_grid_attach(grid, widget, 0, row, 1, 1);
         gtk_widget_show(widget);
         /*
-         * The buffer enable/disable.  Display a check box that is preset to
-         * the built-in default setting.
+         * The buffer enable/disable checkbox.
          */
         msgctrl_widgets[type].buffer.ptr = gtk_check_button_new();
-        gtk_table_attach_defaults(
-            table, msgctrl_widgets[type].buffer.ptr, 1, 2, row, row + 1);
+        gtk_grid_attach(grid, msgctrl_widgets[type].buffer.ptr, 1, row, 1, 1);
         gtk_widget_show(msgctrl_widgets[type].buffer.ptr);
         /*
-         * The message pane routings.  Display a check box that is preset to
-         * the built in defaults.
-         */
-        /**
+         * The message pane routing checkboxes.
+         *
          * @todo  Panes that are unsupported in the current layout should
          * always have their routing disabled, and should disallow user
          * interaction with the control but this logic is not yet implemented.
          */
         for (pane = 0; pane < NUM_TEXT_VIEWS; pane += 1) {
             msgctrl_widgets[type].pane[pane].ptr = gtk_check_button_new();
-            gtk_table_attach_defaults(
-                table, msgctrl_widgets[type].pane[pane].ptr,
-                pane + 2, pane + 3, row, row + 1);
+            gtk_grid_attach(grid, msgctrl_widgets[type].pane[pane].ptr,
+                            pane + 2, row, 1, 1);
             gtk_widget_show(msgctrl_widgets[type].pane[pane].ptr);
         }
     }
