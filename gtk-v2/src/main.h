@@ -34,6 +34,14 @@ extern GtkWidget *connect_window;
 extern int map_image_size, image_size;
 
 #define DEFAULT_UI CF_DATADIR "/ui/gtk-v2.ui"
+
+#ifdef WIN32
+/* Absolute path to the data directory, set at startup from the exe location. */
+extern char cf_datadir_abs[MAX_BUF];
+#define CF_DATADIR_RT cf_datadir_abs
+#else
+#define CF_DATADIR_RT CF_DATADIR
+#endif
 #define DIALOG_FILENAME CF_DATADIR "/ui/dialogs.ui"
 
 /** Path to the current UI file. */

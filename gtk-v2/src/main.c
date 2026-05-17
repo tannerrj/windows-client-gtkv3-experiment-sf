@@ -104,6 +104,9 @@ char window_xml_file[MAX_BUF];
 GdkRGBA root_color[NUM_COLORS];
 
 GtkBuilder *dialog_xml, *window_xml;
+#ifdef WIN32
+char cf_datadir_abs[MAX_BUF];
+#endif
 GtkWidget *window_root, *magic_map, *connect_window;
 GtkNotebook *main_notebook;
 
@@ -554,6 +557,12 @@ int main(int argc, char *argv[]) {
             SetCurrentDirectoryW(exe_path);
         }
     }
+    /* Build absolute path to data directory from cwd (which is now the exe dir) */
+    gchar *cwd = g_get_current_dir();
+    gchar *datadir = g_build_filename(cwd, "share", "crossfire-client", NULL);
+    g_strlcpy(cf_datadir_abs, datadir, sizeof(cf_datadir_abs));
+    g_free(datadir);
+    g_free(cwd);
 #endif
     global_time = g_timer_new();
 #ifdef ENABLE_NLS

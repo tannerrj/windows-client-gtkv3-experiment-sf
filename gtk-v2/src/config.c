@@ -599,7 +599,16 @@ static void setup_config_dialog() {
     gtk_combo_box_set_active(config_combobox_lighting,
                              want_config[CONFIG_LIGHTING]);
 
+#ifdef WIN32
+    /* On Windows, navigate the file chooser to the ui directory directly
+     * using the absolute data directory path set at startup.
+     */
+    gchar *abs_ui_dir = g_build_filename(CF_DATADIR_RT, "ui", NULL);
+    gtk_file_chooser_set_current_folder(ui_filechooser, abs_ui_dir);
+    g_free(abs_ui_dir);
+#else
     gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
+#endif
     gtk_file_chooser_set_filename(theme_filechooser, theme);
 }
 
