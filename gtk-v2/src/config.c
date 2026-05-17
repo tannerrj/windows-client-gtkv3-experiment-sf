@@ -620,7 +620,18 @@ static void setup_config_dialog() {
 #else
     gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
 #endif
+#ifdef WIN32
+    /* On Windows, navigate the theme filechooser to the themes directory
+     * using the absolute data directory path set at startup.
+     */
+    {
+        gchar *abs_theme_dir = g_build_filename(CF_DATADIR_RT, "themes", NULL);
+        gtk_file_chooser_set_current_folder(theme_filechooser, abs_theme_dir);
+        g_free(abs_theme_dir);
+    }
+#else
     gtk_file_chooser_set_filename(theme_filechooser, theme);
+#endif
 }
 
 /**
