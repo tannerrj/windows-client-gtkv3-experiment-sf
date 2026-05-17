@@ -101,7 +101,14 @@ static void apply_theme_css(const char *path) {
  * Load the default CSS theme at startup.
  */
 void init_theme() {
+#ifdef WIN32
+    /* On Windows, CF_DATADIR is relative; use the runtime absolute path instead. */
+    gchar *default_theme = g_build_filename(CF_DATADIR_RT, "themes", "standard.css", NULL);
+    apply_theme_css(default_theme);
+    g_free(default_theme);
+#else
     apply_theme_css(THEME_DEFAULT);
+#endif
 }
 
 /**
@@ -415,7 +422,11 @@ void config_load() {
     }
 
     if (theme == NULL) {
+#ifdef WIN32
+        theme = g_build_filename(CF_DATADIR_RT, "themes", "standard.css", NULL);
+#else
         theme = g_strdup(THEME_DEFAULT);
+#endif
     }
 
     if (face_info.want_faceset == NULL) {
