@@ -79,6 +79,28 @@ static void menu_quit_character(GtkMenuItem *menuitem, gpointer user_data) {
 static void menu_about(GtkMenuItem *menuitem, gpointer user_data) {
     GtkWidget *about_window;
     about_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "about_window"));
+
+#ifdef WIN32
+    /* Load the application icon from the install directory and set it as the
+     * About dialog logo, overriding the placeholder logo_icon_name in the UI
+     * file. On Windows the icon theme is not available, so we load directly
+     * from the bundled PNG. */
+    {
+        gchar *cwd = g_get_current_dir();
+        gchar *icon_path = g_build_filename(cwd, "48x48.png", NULL);
+        GError *err = NULL;
+        GdkPixbuf *logo = gdk_pixbuf_new_from_file(icon_path, &err);
+        if (logo) {
+            gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(about_window), logo);
+            g_object_unref(logo);
+        } else {
+            if (err) g_error_free(err);
+        }
+        g_free(icon_path);
+        g_free(cwd);
+    }
+#endif
+
     gtk_dialog_run(GTK_DIALOG(about_window));
     gtk_widget_hide(about_window);
 }
