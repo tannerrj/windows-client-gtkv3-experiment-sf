@@ -9,8 +9,13 @@ add_custom_command(
         ${PROJECT_SOURCE_DIR}/resources.xml
 )
 
+if(WIN32)
+    set(WIN32_RESOURCES crossfire.rc)
+endif()
+
 add_executable(crossfire-client-gtk2
     ${VALA_C}
+    ${WIN32_RESOURCES}
     account.c
     config.c
     create_char.c

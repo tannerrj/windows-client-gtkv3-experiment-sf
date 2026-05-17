@@ -447,6 +447,18 @@ static void init_ui() {
         exit(EXIT_FAILURE);
     }
 
+#ifdef WIN32
+    /* Set the window icon from the PNG bundled next to the exe. */
+    {
+        gchar *cwd = g_get_current_dir();
+        gchar *icon48 = g_build_filename(cwd, "48x48.png", NULL);
+        GError *icon_err = NULL;
+        gtk_window_set_icon_from_file(GTK_WINDOW(window_root), icon48, &icon_err);
+        if (icon_err) g_error_free(icon_err);
+        g_free(icon48);
+        g_free(cwd);
+    }
+#endif
     /* Request the window to receive focus in and out events */
     gtk_widget_add_events((gpointer) window_root, GDK_FOCUS_CHANGE_MASK);
     g_signal_connect((gpointer) window_root, "focus-out-event",

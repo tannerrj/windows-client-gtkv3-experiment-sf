@@ -1,0 +1,3 @@
+/* Windows resource file for Crossfire GTK client */
+#include <windows.h>
+IDI_ICON1 ICON "..\\..\\pixmaps\\client.ico"
