@@ -13,7 +13,7 @@ if(WIN32)
     set(WIN32_RESOURCES crossfire.rc)
 endif()
 
-add_executable(crossfire-client-gtk2
+add_executable(crossfire-client-gtk3
     ${VALA_C}
     ${WIN32_RESOURCES}
     account.c
@@ -43,7 +43,7 @@ add_executable(crossfire-client-gtk2
     resources.c
 )
 
-target_include_directories(crossfire-client-gtk2
+target_include_directories(crossfire-client-gtk3
     PRIVATE ${PROJECT_BINARY_DIR}
             ${PROJECT_BINARY_DIR}/common
             ${PROJECT_SOURCE_DIR}/common
@@ -53,7 +53,7 @@ target_include_directories(crossfire-client-gtk2
             ${SDL_INCLUDE_DIR}
 )
 
-target_link_libraries(crossfire-client-gtk2 cfclient
+target_link_libraries(crossfire-client-gtk3 cfclient
     ${CURL_LDFLAGS}
     ${GTK_LDFLAGS}
     ${LUA_LIBRARIES}
@@ -65,7 +65,7 @@ target_link_libraries(crossfire-client-gtk2 cfclient
 )
 
 if(MINGW OR WIN32)
-    target_link_libraries(crossfire-client-gtk2 wsock32)
+    target_link_libraries(crossfire-client-gtk3 wsock32)
 endif()
 
-install(TARGETS crossfire-client-gtk2 DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS crossfire-client-gtk3 DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -63,8 +63,8 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 ```
 
-The output executable is `build/gtk-v2/src/crossfire-client-gtk2.exe` on
-Windows or `build/gtk-v2/src/crossfire-client-gtk2` on Linux/macOS.
+The output executable is `build/gtk-v2/src/crossfire-client-gtk3.exe` on
+Windows or `build/gtk-v2/src/crossfire-client-gtk3` on Linux/macOS.
 
 On Windows, build inside the **MSYS2 UCRT64** shell only. Do not use CMD or
 PowerShell for compilation.

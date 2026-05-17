@@ -59,7 +59,7 @@ cmake --build . --config Release
 The output executable is:
 
 ```
-build/gtk-v2/src/crossfire-client-gtk2.exe
+build/gtk-v2/src/crossfire-client-gtk3.exe
 ```
 
 ---
@@ -71,7 +71,7 @@ packaging. The tree structure is:
 
 ```
 CrossfireClient/
-├── crossfire-client-gtk2.exe
+├── crossfire-client-gtk3.exe
 ├── client.ico
 ├── 16x16.png
 ├── 32x32.png
@@ -102,7 +102,7 @@ CrossfireClient/
 ### Copying the executable to staging
 
 ```bash
-cp ~/client/windows-client-gtkv3-experiment-sf/build/gtk-v2/src/crossfire-client-gtk2.exe \
+cp ~/client/windows-client-gtkv3-experiment-sf/build/gtk-v2/src/crossfire-client-gtk3.exe \
    ~/staging/CrossfireClient/
 ```
 
@@ -169,8 +169,8 @@ C:\Program Files\CrossfireClient\
 To update just the executable without reinstalling:
 
 ```powershell
-Copy-Item "C:\msys64\home\leaf\staging\CrossfireClient\crossfire-client-gtk2.exe" `
-          "C:\Program Files\CrossfireClient\crossfire-client-gtk2.exe"
+Copy-Item "C:\msys64\home\leaf\staging\CrossfireClient\crossfire-client-gtk3.exe" `
+          "C:\Program Files\CrossfireClient\crossfire-client-gtk3.exe"
 ```
 
 ---
@@ -215,7 +215,7 @@ if(WIN32)
     set(WIN32_RESOURCES crossfire.rc)
 endif()
 
-add_executable(crossfire-client-gtk2
+add_executable(crossfire-client-gtk3
     ${VALA_C}
     ${WIN32_RESOURCES}
     ...
