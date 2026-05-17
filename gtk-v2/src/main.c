@@ -24,6 +24,8 @@
 
 #ifndef WIN32
 #include <signal.h>
+#else
+#include <windows.h>
 #endif
 
 #include "client-vala.h"
@@ -538,6 +540,21 @@ void hide_main_client() {
  * Main client entry point.
  */
 int main(int argc, char *argv[]) {
+#ifdef WIN32
+    /* On Windows, set the working directory to the executable's directory
+     * so that relative paths like CF_DATADIR ("./share/...") resolve correctly.
+     * This change is Windows-only and does not affect Linux or macOS builds.
+     */
+    wchar_t exe_path[MAX_PATH];
+    if (GetModuleFileNameW(NULL, exe_path, MAX_PATH)) {
+        /* Strip the executable filename to get the directory */
+        wchar_t *last_sep = wcsrchr(exe_path, L'\\');
+        if (last_sep) {
+            *last_sep = L'\0';
+            SetCurrentDirectoryW(exe_path);
+        }
+    }
+#endif
     global_time = g_timer_new();
 #ifdef ENABLE_NLS
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
