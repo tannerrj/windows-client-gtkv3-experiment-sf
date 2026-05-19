@@ -712,11 +712,19 @@ static void read_config_dialog(void) {
     // Set UI file.
     buf = gtk_file_chooser_get_filename(ui_filechooser);
     if (buf != NULL) {
+#ifdef WIN32
+        /* On Windows the native file dialog returns an absolute path directly;
+         * no canonicalization needed and g_canonicalize_filename may mangle
+         * Windows paths. Just copy it directly. */
+        g_strlcpy(window_xml_file, buf, sizeof(window_xml_file));
+#else
         gchar *abs_ui = g_canonicalize_filename(buf, NULL);
-        g_free(buf);
         g_strlcpy(window_xml_file, abs_ui, sizeof(window_xml_file));
         g_free(abs_ui);
+#endif
+        g_free(buf);
     }
+    /* If buf is NULL the user did not select a file; keep window_xml_file unchanged. */
 
     // Set and load theme file.
     buf = gtk_file_chooser_get_filename(theme_filechooser);
