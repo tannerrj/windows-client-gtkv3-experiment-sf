@@ -152,7 +152,16 @@ static void config_load_legacy() {
     LOG(LOG_INFO, "config_load_legacy",
         "You will need to move your keybindings to the new location.");
 
-    snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", g_getenv("HOME"));
+    {
+        const char *home = g_getenv("HOME");
+        if (home == NULL) {
+            home = g_get_home_dir();
+        }
+        if (home == NULL) {
+            return;
+        }
+        snprintf(path, sizeof(path), "%s/.crossfire/gdefaults2", home);
+    }
     if ((fp = fopen(path, "r")) == NULL) {
         return;
     }
