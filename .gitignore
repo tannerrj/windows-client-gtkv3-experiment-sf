@@ -65,7 +65,7 @@
 /utils/mkinstalldirs
 Makefile
 Makefile.in
-build/
+build*/
 common/config.h.in
 cscope.*
 sounds
