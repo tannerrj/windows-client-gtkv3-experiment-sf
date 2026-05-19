@@ -610,19 +610,16 @@ static void setup_config_dialog() {
     gtk_combo_box_set_active(config_combobox_lighting,
                              want_config[CONFIG_LIGHTING]);
 
-    gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
 #ifdef WIN32
-    /* On Windows, if set_filename didn't resolve (stale ini path), fall back to
-     * navigating the chooser to the bundled ui directory so it opens usefully. */
+    /* On Windows the native file dialog ignores set_filename; always navigate
+     * to the ui directory directly so the chooser opens in the right place. */
     {
-        gchar *check = gtk_file_chooser_get_filename(ui_filechooser);
-        if (check == NULL) {
-            gchar *abs_ui_dir = g_build_filename(CF_DATADIR_RT, "ui", NULL);
-            gtk_file_chooser_set_current_folder(ui_filechooser, abs_ui_dir);
-            g_free(abs_ui_dir);
-        }
-        g_free(check);
+        gchar *abs_ui_dir = g_build_filename(CF_DATADIR_RT, "ui", NULL);
+        gtk_file_chooser_set_current_folder(ui_filechooser, abs_ui_dir);
+        g_free(abs_ui_dir);
     }
+#else
+    gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
 #endif
     gtk_file_chooser_set_filename(theme_filechooser, theme);
 #ifdef WIN32
