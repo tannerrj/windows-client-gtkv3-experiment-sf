@@ -156,13 +156,15 @@ endif()
 
 ## Removed Functionality
 
-### Capsicum Sandbox Support (removed in fork, present in upstream)
+### Capsicum Sandbox Support (restored)
 
-The upstream `sf-crossfire-client-gtkv3` added FreeBSD Capsicum sandbox support (commits `16ca75a`, `073c780`). The fork removed this entirely because it was not relevant to the Windows migration goal:
+The upstream `sf-crossfire-client-gtkv3` added FreeBSD Capsicum sandbox support (commits `16ca75a`, `1e5e75d`, `073c780`). This has been restored in the fork with full platform guarding so it compiles cleanly on Linux, macOS, and Windows:
 
-- `HAVE_CAPSICUM` cmake check removed from `CMakeLists.txt`
-- `#include <sys/capsicum.h>` and all `#ifdef HAVE_CAPSICUM` blocks removed from `main.c`
-- `sandbox_enable` checkbox widget removed
+- `check_include_files(sys/capsicum.h HAVE_CAPSICUM)` in `CMakeLists.txt` detects FreeBSD automatically
+- `#cmakedefine HAVE_CAPSICUM` in `config.h.in`
+- `#ifdef HAVE_CAPSICUM` guards all Capsicum calls in `main.c`
+- The `sandbox_enable` checkbox is present in `dialogs.ui` and `main.c`; it is greyed out on non-FreeBSD platforms
+- `map_pre_sandbox_init()` in `map.c` pre-caches the label font so map labels render correctly after `cap_enter()`
 
 ### GIF Pixmaps Removed from `resources.xml` (fork)
 
@@ -183,7 +185,7 @@ The fork branched at version 1.75.3. The upstream has since reached 1.75.5 with 
 | `b184e8a` | `error_dialog()` output logged to stderr |
 | `eebb9a8` | AFK monitoring only for commands actually sent |
 | `4e443a9` | Static image cache removed |
-| `16ca75a`, `073c780` | Capsicum sandbox support |
+| `16ca75a`, `1e5e75d`, `073c780` | Capsicum sandbox support (restored) |
 | `065a8c9` | `get_data_file_path()` helper function |
 | `896d4d7` | Logic error fix (unspecified) |
 | `026ae0b` | Mismatched definition fix |
@@ -192,9 +194,9 @@ The fork branched at version 1.75.3. The upstream has since reached 1.75.5 with 
 
 ## Risky Changes
 
-### Capsicum Removal Without Replacement
+### `CF_DATADIR_RT` Note
 
-The sandbox was a security boundary on FreeBSD. It was deleted rather than ported or disabled conditionally. Anyone building this fork for FreeBSD loses the security feature with no warning or fallback.
+*(The Capsicum removal risk noted here previously has been resolved — the sandbox support was restored with proper platform guards.)*
 
 ### `CF_DATADIR_RT` Relies on Silent Startup Failure
 

@@ -41,13 +41,14 @@ a separate dependency because not all GTK3 installations bundle a
 GIO-with-networking header (`gio/gnetworking.h`), which is tested separately
 with `check_include_files`.
 
-### Capsicum sandbox removed
+### Capsicum sandbox
 
-The original tree included Capsicum (FreeBSD capability sandbox) support gated
-on `HAVE_CAPSICUM`.  This was removed during the port because it had rotted and
-was not relevant to the GTK3 migration goal.  The sandbox UI widget
-(`sandbox_enable` checkbox) and all `#ifdef HAVE_CAPSICUM` code were deleted
-from `main.c`.
+Capsicum (FreeBSD capability sandbox) support is gated on `HAVE_CAPSICUM`,
+which CMake detects by probing for `sys/capsicum.h`.  On Linux, macOS, and
+Windows the header is absent so `HAVE_CAPSICUM` is not defined, the sandbox
+checkbox in the metaserver dialog is shown but greyed out, and no Capsicum
+code is compiled.  On FreeBSD the header is present, the checkbox is enabled,
+and `cap_enter()` is called after the server connection is established.
 
 ### config.h output path
 

@@ -28,6 +28,10 @@
 #include <windows.h>
 #endif
 
+#ifdef HAVE_CAPSICUM
+#include <sys/capsicum.h>
+#endif
+
 #include "client-vala.h"
 #include "image.h"
 #include "main.h"
@@ -109,6 +113,8 @@ char cf_datadir_abs[MAX_BUF];
 #endif
 GtkWidget *window_root, *magic_map, *connect_window;
 GtkNotebook *main_notebook;
+
+GtkCheckButton *sandbox_enable;
 
 extern time_t last_command_sent;
 extern bool is_afk;
@@ -501,6 +507,12 @@ static void init_ui() {
     msgctrl_init(window_root);
     init_create_character_window();
     metaserver_ui_init();
+    sandbox_enable = GTK_CHECK_BUTTON(gtk_builder_get_object(dialog_xml, "sandbox_enable"));
+#ifdef HAVE_CAPSICUM
+    gtk_widget_set_sensitive(GTK_WIDGET(sandbox_enable), true);
+#else
+    gtk_widget_set_sensitive(GTK_WIDGET(sandbox_enable), false);
+#endif
 
     LOG(LOG_DEBUG, "init_ui", "window positions");
     load_window_positions(window_root);
@@ -614,6 +626,7 @@ int main(int argc, char *argv[]) {
     init_image_cache_data();
 
     LOG(LOG_DEBUG, "main", "init done");
+    bool sandbox_enabled = false;
 
     while (true) {
         gtk_widget_show(connect_window);
@@ -627,6 +640,25 @@ int main(int argc, char *argv[]) {
                 break;
             }
             cpl.input_state = Playing;
+        }
+
+        map_pre_sandbox_init();
+        sandbox_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(sandbox_enable));
+        if (sandbox_enabled) {
+            gtk_widget_show(window_root);
+            map_init(window_root);
+            for (int i = 0; i < 100; i++) {
+                gtk_main_iteration();
+            }
+            gtk_widget_hide(window_root);
+
+#ifdef HAVE_CAPSICUM
+            if (cap_enter() != 0) {
+                error_dialog("Failed to enter sandbox", "Sandboxing was enabled, but the running kernel does not support sandboxing.");
+                break;
+            }
+            LOG(LOG_INFO, "main", "Entering sandbox");
+#endif
         }
 
         client_negotiate(use_config[CONFIG_SOUND]);
@@ -647,6 +679,10 @@ int main(int argc, char *argv[]) {
          */
         reset_image_data();
         client_reset();
+
+        if (sandbox_enabled) {
+            break;
+        }
     }
 }
 
