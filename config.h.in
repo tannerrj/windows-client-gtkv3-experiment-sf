@@ -13,3 +13,4 @@
 
 /* Features */
 #cmakedefine HAVE_LUA
+#cmakedefine HAVE_SOUND

@@ -23,6 +23,16 @@
 
 #include "client-vala.h"
 
+#ifndef HAVE_SOUND
+int cf_snd_init() { return -1; }
+void cf_snd_exit() {}
+void cf_play_music(const char *music_name) { (void)music_name; }
+void cf_play_sound(gint8 x, gint8 y, guint8 dir, guint8 vol, guint8 type,
+                   char const sound[static 1], char const source[static 1]) {
+    (void)x; (void)y; (void)dir; (void)vol; (void)type; (void)sound; (void)source;
+}
+#endif
+
 /**
  * Initialize the sound subsystem by starting the external cfsndserv process.
  * The sound server is launched via cf_snd_init() from the Vala binding layer.

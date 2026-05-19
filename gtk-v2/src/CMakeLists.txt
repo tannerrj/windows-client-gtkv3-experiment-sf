@@ -39,9 +39,12 @@ add_executable(crossfire-client-gtk3
     spells.c
     stats.c
     sound.h
-    cfsndserv.c
     resources.c
 )
+
+if(SOUND)
+    target_sources(crossfire-client-gtk3 PRIVATE cfsndserv.c)
+endif()
 
 target_include_directories(crossfire-client-gtk3
     PRIVATE ${PROJECT_BINARY_DIR}

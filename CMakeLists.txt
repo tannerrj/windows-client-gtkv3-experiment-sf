@@ -55,6 +55,7 @@ endif()
 
 if(SOUND)
     pkg_check_modules(SDLMIXER SDL2_mixer REQUIRED)
+    set(HAVE_SOUND 1)
     if(EXISTS "${PROJECT_SOURCE_DIR}/sounds")
         install(DIRECTORY sounds DESTINATION ${CMAKE_INSTALL_DATADIR})
     else()
@@ -74,10 +75,9 @@ configure_file(
     "${PROJECT_BINARY_DIR}/config.h"
 )
 
+enable_testing()
 add_subdirectory(common)
 add_subdirectory(gtk-v2)
-
-enable_testing()
 
 # Build an installation package.
 include(InstallRequiredSystemLibraries)
