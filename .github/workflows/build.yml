@@ -92,13 +92,12 @@ jobs:
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-ninja
             mingw-w64-ucrt-x86_64-gtk3
-            mingw-w64-ucrt-x86_64-libcurl
+            mingw-w64-ucrt-x86_64-curl
             mingw-w64-ucrt-x86_64-SDL2
             mingw-w64-ucrt-x86_64-SDL2_mixer
             mingw-w64-ucrt-x86_64-vala
             mingw-w64-ucrt-x86_64-libpng
             mingw-w64-ucrt-x86_64-pkgconf
-            perl
 
       - name: Configure
         run: |
