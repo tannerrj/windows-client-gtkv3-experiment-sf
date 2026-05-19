@@ -7,7 +7,7 @@ on:
     branches: [gtk3, master]
 
 jobs:
-  build:
+  build-linux:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
 
@@ -68,4 +68,52 @@ jobs:
         with:
           name: crossfire-client-gtk3-linux
           path: build/gtk-v2/src/crossfire-client-gtk3
+          if-no-files-found: error
+
+  build-windows:
+    name: Windows (MSYS2/UCRT64)
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-gtk3
+            mingw-w64-ucrt-x86_64-libcurl
+            mingw-w64-ucrt-x86_64-SDL2
+            mingw-w64-ucrt-x86_64-SDL2_mixer
+            mingw-w64-ucrt-x86_64-vala
+            mingw-w64-ucrt-x86_64-libpng
+            mingw-w64-ucrt-x86_64-pkgconf
+            perl
+
+      - name: Configure
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DLUA=OFF \
+            -DSOUND=ON \
+            -DMETASERVER2=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: crossfire-client-gtk3-windows
+          path: build/gtk-v2/src/crossfire-client-gtk3.exe
           if-no-files-found: error
