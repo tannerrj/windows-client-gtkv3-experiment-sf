@@ -151,20 +151,11 @@ endif()
 | `AGENTS.md` | root | Contributor and AI agent guidance: source tree layout, build conventions, WIN32 coding patterns, known platform issues, pre-commit checklist |
 | `BUILDING-WINDOWS.md` | root | Step-by-step Windows build and packaging guide (MSYS2/UCRT64 + NSIS) |
 | `GTK3_PORT_CHANGES.md` | root | Detailed per-file developer documentation of every GTK2→GTK3 change |
+| Capsicum sandbox (FreeBSD) | `CMakeLists.txt`, `config.h.in`, `main.c`, `map.c`, `dialogs.ui` | Restored from upstream commits `16ca75a`, `1e5e75d`, `073c780`; gated on `HAVE_CAPSICUM` so Linux/macOS/Windows builds are unaffected; checkbox greyed out on non-FreeBSD platforms |
 
 ---
 
 ## Removed Functionality
-
-### Capsicum Sandbox Support (restored)
-
-The upstream `sf-crossfire-client-gtkv3` added FreeBSD Capsicum sandbox support (commits `16ca75a`, `1e5e75d`, `073c780`). This has been restored in the fork with full platform guarding so it compiles cleanly on Linux, macOS, and Windows:
-
-- `check_include_files(sys/capsicum.h HAVE_CAPSICUM)` in `CMakeLists.txt` detects FreeBSD automatically
-- `#cmakedefine HAVE_CAPSICUM` in `config.h.in`
-- `#ifdef HAVE_CAPSICUM` guards all Capsicum calls in `main.c`
-- The `sandbox_enable` checkbox is present in `dialogs.ui` and `main.c`; it is greyed out on non-FreeBSD platforms
-- `map_pre_sandbox_init()` in `map.c` pre-caches the label font so map labels render correctly after `cap_enter()`
 
 ### GIF Pixmaps Removed from `resources.xml` (fork)
 
@@ -185,18 +176,15 @@ The fork branched at version 1.75.3. The upstream has since reached 1.75.5 with 
 | `b184e8a` | `error_dialog()` output logged to stderr |
 | `eebb9a8` | AFK monitoring only for commands actually sent |
 | `4e443a9` | Static image cache removed |
-| `16ca75a`, `1e5e75d`, `073c780` | Capsicum sandbox support (restored) |
 | `065a8c9` | `get_data_file_path()` helper function |
 | `896d4d7` | Logic error fix (unspecified) |
 | `026ae0b` | Mismatched definition fix |
 
+Upstream commits `16ca75a`, `1e5e75d`, and `073c780` (Capsicum sandbox support) have been merged into this fork.
+
 ---
 
 ## Risky Changes
-
-### `CF_DATADIR_RT` Note
-
-*(The Capsicum removal risk noted here previously has been resolved — the sandbox support was restored with proper platform guards.)*
 
 ### `CF_DATADIR_RT` Relies on Silent Startup Failure
 

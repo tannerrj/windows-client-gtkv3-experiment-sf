@@ -50,6 +50,111 @@ checkbox in the metaserver dialog is shown but greyed out, and no Capsicum
 code is compiled.  On FreeBSD the header is present, the checkbox is enabled,
 and `cap_enter()` is called after the server connection is established.
 
+```cmake
+check_include_files(sys/capsicum.h HAVE_CAPSICUM)
+```
+
+`config.h.in` exposes the result to C code:
+
+```c
+#cmakedefine HAVE_CAPSICUM
+```
+
+**`gtk-v2/ui/dialogs.ui`** — An "Enable Sandbox" `GtkCheckButton` with
+`id="sandbox_enable"` was added to the metaserver dialog's button row, before
+the Connect button.  The widget's `sensitive` property defaults to `False` in
+the UI file; `init_ui()` in `main.c` overrides this based on `HAVE_CAPSICUM`.
+
+**`gtk-v2/src/main.c`** — Three changes:
+
+1. Conditional include at the top of the file:
+
+```c
+#ifdef HAVE_CAPSICUM
+#include <sys/capsicum.h>
+#endif
+```
+
+2. `init_ui()` looks up the widget and enables it only on FreeBSD:
+
+```c
+sandbox_enable = GTK_CHECK_BUTTON(gtk_builder_get_object(dialog_xml, "sandbox_enable"));
+#ifdef HAVE_CAPSICUM
+gtk_widget_set_sensitive(GTK_WIDGET(sandbox_enable), true);
+#else
+gtk_widget_set_sensitive(GTK_WIDGET(sandbox_enable), false);
+#endif
+```
+
+3. In the main connection loop, before `client_negotiate()`, the sandbox is
+entered if the user checked the box.  Theme assets and the Cairo label font
+are pre-loaded first because `cap_enter()` denies all further filesystem
+access:
+
+```c
+map_pre_sandbox_init();
+sandbox_enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(sandbox_enable));
+if (sandbox_enabled) {
+    gtk_widget_show(window_root);
+    map_init(window_root);
+    for (int i = 0; i < 100; i++) {
+        gtk_main_iteration();
+    }
+    gtk_widget_hide(window_root);
+
+#ifdef HAVE_CAPSICUM
+    if (cap_enter() != 0) {
+        error_dialog("Failed to enter sandbox",
+                     "Sandboxing was enabled, but the running kernel does not support sandboxing.");
+        break;
+    }
+    LOG(LOG_INFO, "main", "Entering sandbox");
+#endif
+}
+```
+
+After the event loop returns, the loop also breaks if sandboxing was active —
+reconnecting would require filesystem access that the sandbox no longer permits:
+
+```c
+if (sandbox_enabled) {
+    break;
+}
+```
+
+**`gtk-v2/src/map.c`** — `map_draw_labels()` previously created and destroyed a
+`cairo_font_face_t` on every draw call.  Under Capsicum, the first draw call
+after `cap_enter()` would fail to load the font because font file lookups are
+denied.  The fix promotes the font to a module-level static and provides a
+`map_pre_sandbox_init()` function that creates and warms up the font before the
+sandbox is entered:
+
+```c
+// Module-level:
+static cairo_font_face_t *font;
+
+void map_pre_sandbox_init() {
+    font = cairo_toy_font_face_create("", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    // Warm-up: force font internals to be cached
+    const char *test_text = "TEST TEXT";
+    cairo_surface_t *cst = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 10, 10);
+    cairo_t *cr = cairo_create(cst);
+    cairo_set_font_face(cr, font);
+    cairo_text_extents_t extents;
+    cairo_text_extents(cr, test_text, &extents);
+    cairo_show_text(cr, test_text);
+    cairo_destroy(cr);
+    cairo_surface_destroy(cst);
+}
+```
+
+`map_draw_labels()` now calls `cairo_set_font_face(cr, font)` directly, using
+the already-cached face.  The corresponding `cairo_font_face_destroy(font)` at
+the end of `map_draw_labels()` was removed.
+
+`map_pre_sandbox_init()` is declared in `gtk-v2/src/gtk2proto.h` so `main.c`
+can call it without a forward declaration.
+
 ### config.h output path
 
 ```diff
@@ -742,23 +847,24 @@ workflow artifact.
 
 | File | Change category |
 |------|----------------|
-| `CMakeLists.txt` | gtk+-2.0 → gtk+-3.0; config.h output path |
+| `CMakeLists.txt` | gtk+-2.0 → gtk+-3.0; config.h output path; `HAVE_CAPSICUM` detection |
+| `config.h.in` | `HAVE_CAPSICUM` cmakedefine |
 | `gtk-v2/src/config.c` | CSS provider lifecycle; `apply_theme_css()`; `load_theme()` fix |
-| `gtk-v2/src/gtk2proto.h` | Updated signatures; new `get_css_fg/bg_color` declarations |
+| `gtk-v2/src/gtk2proto.h` | Updated signatures; new `get_css_fg/bg_color` declarations; `map_pre_sandbox_init` |
 | `gtk-v2/src/info.c` | `GtkStyle` → `GtkStyleContext`; CSS color helpers |
 | `gtk-v2/src/inventory.c` | `GdkColor` → `GdkRGBA`; GtkTable → GtkGrid; fg+bg color model; CSS |
 | `gtk-v2/src/keys.c` | GTK_STOCK_YES/NO → mnemonic text labels |
 | `gtk-v2/src/magicmap.c` | draw signal; `gdk_cairo_create` removal; `GdkRGBA` colors |
-| `gtk-v2/src/main.c` | `GdkRGBA` init; `expose_event` → `draw`; sandbox removal |
+| `gtk-v2/src/main.c` | `GdkRGBA` init; `expose_event` → `draw`; Capsicum sandbox support |
 | `gtk-v2/src/main.h` | `GdkColor` → `GdkRGBA` for `root_color` |
-| `gtk-v2/src/map.c` | Persistent `cairo_surface_t`; draw signal blitting |
+| `gtk-v2/src/map.c` | Persistent `cairo_surface_t`; draw signal blitting; `map_pre_sandbox_init`; static label font |
 | `gtk-v2/src/spells.c` | `GdkColor` → `GdkRGBA`; `GDK_TYPE_RGBA`; fg+bg model; CSS |
 | `gtk-v2/src/stats.c` | `GdkColor` → `GdkRGBA`; GtkTable → GtkGrid; CSS bar colors |
 | `gtk-v2/themes/standard.css` | cf-* application color classes; invalid color name fixes |
 | `gtk-v2/themes/black.css` | New dark theme |
 | `gtk-v2/ui/caelestis.ui` | GtkTable → GtkGrid; window title |
 | `gtk-v2/ui/chthonic.ui` | GtkTable → GtkGrid; window title |
-| `gtk-v2/ui/dialogs.ui` | GtkTable → GtkGrid; GtkHSeparator → GtkSeparator |
+| `gtk-v2/ui/dialogs.ui` | GtkTable → GtkGrid; GtkHSeparator → GtkSeparator; `sandbox_enable` checkbox |
 | `gtk-v2/ui/eureka.ui` | GtkTable → GtkGrid; window title |
 | `gtk-v2/ui/gtk-v1.ui` | GtkTable → GtkGrid; window title |
 | `gtk-v2/ui/gtk-v2.ui` | GtkTable → GtkGrid; window title |
