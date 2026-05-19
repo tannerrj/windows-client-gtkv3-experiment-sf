@@ -124,10 +124,17 @@ rely on GTK file filters to restrict what the user sees. Instead, ensure only
 valid files exist in the relevant directories (for example, do not install
 GTK2-format theme files alongside `.css` files).
 
-When setting a file chooser's initial location on Windows, use
+When setting a file chooser's initial location, always call
+`gtk_file_chooser_set_filename()` with the current absolute path so the active
+file is pre-selected. On Windows, follow this with a `get_filename()` probe; if
+it returns NULL (path doesn't resolve, e.g. stale `client.ini`), fall back to
 `gtk_file_chooser_set_current_folder()` with an absolute path built from
-`CF_DATADIR_RT`. Do not use `gtk_file_chooser_set_filename()` with a relative
-or potentially stale path.
+`CF_DATADIR_RT`.
+
+When reading a path back from a file chooser in `read_config_dialog()`, always
+pass the result through `g_canonicalize_filename(buf, NULL)` before storing it.
+This guarantees that only absolute paths are written to `client.ini`, regardless
+of what the chooser widget returns.
 
 ### UI files
 
@@ -210,9 +217,10 @@ file, verify the following on Windows:
 - [ ] Client launches without error dialogs
 - [ ] Metaserver browser appears and populates
 - [ ] Edit → Preferences opens correctly
-- [ ] Theme chooser opens to `share/crossfire-client/themes/` showing only `.css` files
-- [ ] Layout chooser opens to `share/crossfire-client/ui/` showing `.ui` files
+- [ ] Theme chooser opens with the currently active `.css` file pre-selected
+- [ ] Layout chooser opens with the currently active `.ui` file pre-selected
 - [ ] Selecting `black.css` and clicking Apply changes message colours
 - [ ] Settings persist correctly after restarting the client
+- [ ] `client.ini` `theme` and `window_layout` values are absolute paths after Apply
 - [ ] Application icon appears in Explorer, taskbar, and Alt-Tab switcher
 - [ ] Start Menu and Desktop shortcuts have the Crossfire icon

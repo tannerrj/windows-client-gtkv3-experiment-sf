@@ -711,6 +711,29 @@ The one-shot guards were therefore removed.  `stats_get_styles()` frees and
 reallocates `bar_colors` on every call.  `inventory_get_styles()` and
 `spell_get_styles()` reinitialize their color arrays in-place.
 
+#### Theme path persistence (`gtk-v2/src/config.c`)
+
+`setup_config_dialog()` now calls `gtk_file_chooser_set_filename()` on all
+platforms so the currently-active theme and UI layout files are pre-selected
+when the Preferences dialog opens.  Previously, the Windows code path only
+called `gtk_file_chooser_set_current_folder()`, leaving no file pre-selected
+and giving the user no indication of which theme was active.  A fallback to
+`set_current_folder()` (from `CF_DATADIR_RT`) is still used on Windows when the
+stored path doesn't resolve (e.g. stale `client.ini` after reinstall).
+
+`read_config_dialog()` now passes every path returned by
+`gtk_file_chooser_get_filename()` through `g_canonicalize_filename(buf, NULL)`
+before storing it in `theme` or `window_xml_file`.  GTK documents that
+`get_filename()` returns an absolute path, but this guarantee can break on
+Windows when the chooser was initialised with a relative path.  Canonicalising
+at read time ensures `save_defaults()` always writes an absolute path to
+`client.ini`, which is then reliably reloadable on the next launch regardless of
+the working directory.
+
+A memory leak was also fixed: when the user opened the dialog and clicked Apply
+without changing the theme, the string returned by `get_filename()` was not
+freed.
+
 ---
 
 ## Inventory and Spell Color Model: foreground + background
@@ -887,7 +910,7 @@ sound + metaserver build.  Key naming note: the curl package in MSYS2/UCRT64 is
 |------|----------------|
 | `CMakeLists.txt` | gtk+-2.0 → gtk+-3.0; config.h output path; `HAVE_CAPSICUM` detection |
 | `config.h.in` | `HAVE_CAPSICUM` cmakedefine |
-| `gtk-v2/src/config.c` | CSS provider lifecycle; `apply_theme_css()`; `load_theme()` fix |
+| `gtk-v2/src/config.c` | CSS provider lifecycle; `apply_theme_css()`; `load_theme()` fix; theme/UI path canonicalization via `g_canonicalize_filename()`; file chooser pre-selection fix; memory leak fix |
 | `gtk-v2/src/gtk2proto.h` | Updated signatures; new `get_css_fg/bg_color` declarations; `map_pre_sandbox_init` |
 | `gtk-v2/src/info.c` | `GtkStyle` → `GtkStyleContext`; CSS color helpers |
 | `gtk-v2/src/inventory.c` | `GdkColor` → `GdkRGBA`; GtkTable → GtkGrid; fg+bg color model; CSS |
