@@ -827,19 +827,57 @@ the titles were inconsistent: some said `"Crossfire Client - GTK v2"`, one said
 
 ## CI/CD (`.github/workflows/build.yml`)
 
-A GitHub Actions workflow was added that builds the GTK3 client on
-`ubuntu-latest` in two configurations on every push or pull request to the
-`gtk3` and `master` branches:
+A GitHub Actions workflow builds the GTK3 client on every push or pull request
+to the `gtk3` and `master` branches.  Three jobs run in parallel:
 
-| Job | `SOUND` | `METASERVER2` | Extra packages |
-|-----|---------|---------------|----------------|
-| Full | ON | ON | `libsdl2-mixer-dev libcurl4-openssl-dev` |
-| Minimal | OFF | OFF | — |
+| Job | Runner | `SOUND` | `METASERVER2` | Artifact |
+|-----|--------|---------|---------------|----------|
+| Linux Full | `ubuntu-latest` | ON | ON | `crossfire-client-gtk3` |
+| Linux Minimal | `ubuntu-latest` | OFF | OFF | — |
+| Windows | `windows-latest` (MSYS2/UCRT64) | ON | ON | `crossfire-client-gtk3.exe` |
 
-The live-network `metaserver` ctest is excluded (`-E metaserver`) because it
-requires the Crossfire metaserver to be reachable and does not assert any
-correctness condition.  The full-build job uploads the compiled binary as a
-workflow artifact.
+The live-network `metaserver` ctest is excluded (`-E metaserver`) on Linux
+because it requires the Crossfire metaserver to be reachable and does not
+assert any correctness condition.  The Windows job has no test step because
+`ctest` requires an X display that is not available on the runner.
+
+### Linux dependency fix (Ubuntu 24.04 Noble)
+
+Ubuntu 24.04 renamed the package that provides `glib-compile-resources`.  The
+workflow uses `libglib2.0-dev-bin` (the current name) rather than the old
+`libgio-2.0-dev-bin` which no longer exists on Noble.
+
+### `cfsndserv.c` conditional compilation (`HAVE_SOUND`)
+
+`cfsndserv.c` unconditionally includes `<SDL.h>`.  When `SOUND=OFF` the SDL
+headers are not installed, causing the Minimal build to fail at compile time.
+The fix has two parts:
+
+1. `gtk-v2/src/CMakeLists.txt` — `cfsndserv.c` is only added to the executable
+   via `target_sources` inside an `if(SOUND)` block instead of being listed
+   unconditionally in `add_executable`.
+
+2. `gtk-v2/src/sound.c` — no-op stubs for `cf_snd_init`, `cf_snd_exit`,
+   `cf_play_music`, and `cf_play_sound` are compiled under `#ifndef HAVE_SOUND`
+   so the rest of the client can link regardless of whether sound is enabled.
+
+`HAVE_SOUND` is set in `CMakeLists.txt` inside the `if(SOUND)` block and
+written to `config.h` via `#cmakedefine HAVE_SOUND` in `config.h.in`.
+
+### `enable_testing()` ordering fix
+
+`enable_testing()` must be called before any `add_subdirectory()` that contains
+`add_test()` calls, otherwise CMake silently skips test registration and `ctest`
+reports 0 tests.  The call was moved to appear before `add_subdirectory(common)`
+and `add_subdirectory(gtk-v2)`.
+
+### Windows build (MSYS2/UCRT64)
+
+The Windows job uses the `msys2/setup-msys2@v2` action with `msystem: UCRT64`
+and installs the full set of `mingw-w64-ucrt-x86_64-*` packages needed for a
+sound + metaserver build.  Key naming note: the curl package in MSYS2/UCRT64 is
+`mingw-w64-ucrt-x86_64-curl`, not `libcurl`.  Perl is pre-installed on the
+`windows-latest` runner and does not need to be listed.
 
 ---
 
@@ -874,4 +912,7 @@ workflow artifact.
 | `gtk-v2/ui/sixforty.ui` | GtkTable → GtkGrid; window title |
 | `gtk-v2/ui/un-deux.ui` | GtkTable → GtkGrid; window title |
 | `gtk-v2/ui/v1-redux.ui` | GtkTable → GtkGrid; window title |
-| `.github/workflows/build.yml` | GitHub Actions CI |
+| `.github/workflows/build.yml` | GitHub Actions CI: three jobs (Linux full, Linux minimal, Windows MSYS2/UCRT64); `libglib2.0-dev-bin` Noble fix; Windows artifact |
+| `gtk-v2/src/CMakeLists.txt` | `cfsndserv.c` moved to `if(SOUND) target_sources(...)` block |
+| `gtk-v2/src/sound.c` | `#ifndef HAVE_SOUND` no-op stubs for `cf_snd_*` functions |
+| `config.h.in` | `#cmakedefine HAVE_SOUND` added |

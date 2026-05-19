@@ -107,14 +107,18 @@ commit log.
 ## Platform compatibility
 
 All Windows-specific changes are guarded by `#ifdef WIN32` or `if(WIN32)` CMake
-conditions. The Linux and macOS build paths are unchanged. The existing GitHub
-Actions CI workflow builds the client on `ubuntu-latest` in two configurations
-(full dependencies and minimal) and confirms that none of the Windows changes
-break the Linux build. See `.github/workflows/build.yml`.
+conditions. The Linux and macOS build paths are unchanged. The GitHub Actions CI
+workflow builds the client in three jobs on every push or pull request to the
+`gtk3` and `master` branches — two Linux configurations and one Windows build —
+and confirms that none of the platform-specific changes break any other target.
+See `.github/workflows/build.yml`.
 
-The CI workflow was extended to add Ninja as the build system and to explicitly
-disable Lua (`-DLUA=OFF`), matching the Windows installer build configuration.
-The Linux build artifact is uploaded for the full configuration build.
+The CI workflow uses Ninja as the build system and explicitly disables Lua
+(`-DLUA=OFF`), matching the Windows installer build configuration. The full
+Linux build and the Windows build each upload the compiled binary as a workflow
+artifact (`crossfire-client-gtk3` and `crossfire-client-gtk3.exe` respectively).
+The Windows job uses MSYS2/UCRT64 (`windows-latest` runner, `msys2/setup-msys2`
+action) to match the documented developer build environment.
 
 ---
 
