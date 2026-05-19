@@ -610,27 +610,32 @@ static void setup_config_dialog() {
     gtk_combo_box_set_active(config_combobox_lighting,
                              want_config[CONFIG_LIGHTING]);
 
-#ifdef WIN32
-    /* On Windows, navigate the file chooser to the ui directory directly
-     * using the absolute data directory path set at startup.
-     */
-    gchar *abs_ui_dir = g_build_filename(CF_DATADIR_RT, "ui", NULL);
-    gtk_file_chooser_set_current_folder(ui_filechooser, abs_ui_dir);
-    g_free(abs_ui_dir);
-#else
     gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
-#endif
 #ifdef WIN32
-    /* On Windows, navigate the theme filechooser to the themes directory
-     * using the absolute data directory path set at startup.
-     */
+    /* On Windows, if set_filename didn't resolve (stale ini path), fall back to
+     * navigating the chooser to the bundled ui directory so it opens usefully. */
     {
-        gchar *abs_theme_dir = g_build_filename(CF_DATADIR_RT, "themes", NULL);
-        gtk_file_chooser_set_current_folder(theme_filechooser, abs_theme_dir);
-        g_free(abs_theme_dir);
+        gchar *check = gtk_file_chooser_get_filename(ui_filechooser);
+        if (check == NULL) {
+            gchar *abs_ui_dir = g_build_filename(CF_DATADIR_RT, "ui", NULL);
+            gtk_file_chooser_set_current_folder(ui_filechooser, abs_ui_dir);
+            g_free(abs_ui_dir);
+        }
+        g_free(check);
     }
-#else
+#endif
     gtk_file_chooser_set_filename(theme_filechooser, theme);
+#ifdef WIN32
+    /* Same fallback for the theme chooser. */
+    {
+        gchar *check = gtk_file_chooser_get_filename(theme_filechooser);
+        if (check == NULL) {
+            gchar *abs_theme_dir = g_build_filename(CF_DATADIR_RT, "themes", NULL);
+            gtk_file_chooser_set_current_folder(theme_filechooser, abs_theme_dir);
+            g_free(abs_theme_dir);
+        }
+        g_free(check);
+    }
 #endif
 }
 
@@ -710,16 +715,24 @@ static void read_config_dialog(void) {
     // Set UI file.
     buf = gtk_file_chooser_get_filename(ui_filechooser);
     if (buf != NULL) {
-        g_strlcpy(window_xml_file, buf, sizeof(window_xml_file));
+        gchar *abs_ui = g_canonicalize_filename(buf, NULL);
         g_free(buf);
+        g_strlcpy(window_xml_file, abs_ui, sizeof(window_xml_file));
+        g_free(abs_ui);
     }
 
     // Set and load theme file.
     buf = gtk_file_chooser_get_filename(theme_filechooser);
-    if (buf != NULL && g_ascii_strcasecmp(buf, theme) != 0) {
-        g_free(theme);
-        theme = buf;
-        load_theme(TRUE);
+    if (buf != NULL) {
+        gchar *abs_theme = g_canonicalize_filename(buf, NULL);
+        g_free(buf);
+        if (g_ascii_strcasecmp(abs_theme, theme) != 0) {
+            g_free(theme);
+            theme = abs_theme;
+            load_theme(TRUE);
+        } else {
+            g_free(abs_theme);
+        }
     }
 
     if (IS_DIFFERENT(CONFIG_GRAD_COLOR)) {
