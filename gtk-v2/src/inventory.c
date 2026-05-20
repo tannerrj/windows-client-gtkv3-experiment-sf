@@ -869,17 +869,103 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
 }
 
 /**
+ * Update only the display columns of an existing store row in place.
+ *
+ * Skips the static identity columns (LIST_OBJECT, LIST_TYPE, LIST_BASENAME,
+ * LIST_FONT) that never change for a given item, reducing the number of GTK
+ * property-change signals emitted per differential inventory update.
+ */
+static void update_store_row(item *it, GtkTreeStore *store,
+        GtkTreeIter *iter, int color) {
+    char buf[256], buf1[256];
+    GdkRGBA *background = NULL;
+    GdkRGBA *foreground = NULL;
+
+    if (it->weight < 0)
+        strcpy(buf, " ");
+    else
+        snprintf(buf, sizeof(buf), "%6.1f", it->nrof * it->weight);
+    snprintf(buf1, sizeof(buf1), "%s %s", it->d_name, it->flags);
+    if (color) {
+        int style_idx = get_row_style(it);
+        if (style_idx >= 0) {
+            if (inv_has_bg[style_idx]) background = &inv_bg_colors[style_idx];
+            if (inv_has_fg[style_idx]) foreground = &inv_fg_colors[style_idx];
+        }
+    }
+    gtk_tree_store_set(store, iter,
+            LIST_ICON,       (GdkPixbuf*)pixmaps[it->face]->icon_image,
+            LIST_NAME,       buf1,
+            LIST_WEIGHT,     buf,
+            LIST_BACKGROUND, background,
+            LIST_FOREGROUND, foreground,
+            -1);
+}
+
+/**
+ * Attempt a differential update of a ground-look store.
+ *
+ * Walks the current store and the desired item list simultaneously.  Rows
+ * whose item* pointer matches the desired item are updated in place; extra
+ * store rows are deleted; missing desired items are appended.  Returns FALSE
+ * if the lists diverge mid-walk (different item* at the same position), which
+ * signals the caller to fall back to a full gtk_tree_store_clear + rebuild.
+ */
+static gboolean try_diff_update_look(void) {
+    GtkTreeIter iter;
+    gboolean have_row = gtk_tree_model_get_iter_first(
+                            GTK_TREE_MODEL(store_look), &iter);
+    item *tmp = cpl.below->inv;
+
+    while (tmp != NULL) {
+        if (!have_row) {
+            /* Store exhausted before desired list — append remaining items. */
+            GtkTreeIter new_iter;
+            add_object_to_store(tmp, store_look, &new_iter, NULL, 1);
+            tmp = tmp->next;
+            continue;
+        }
+
+        item *store_item;
+        gtk_tree_model_get(GTK_TREE_MODEL(store_look), &iter,
+                           LIST_OBJECT, &store_item, -1);
+        if (store_item != tmp)
+            return FALSE;
+
+        update_store_row(tmp, store_look, &iter, 1);
+        have_row = gtk_tree_model_iter_next(GTK_TREE_MODEL(store_look), &iter);
+        tmp = tmp->next;
+    }
+
+    /* Remove any leftover store rows (items removed from the ground). */
+    while (have_row)
+        have_row = gtk_tree_store_remove(store_look, &iter);
+
+    return TRUE;
+}
+
+/**
  * Draws the objects beneath the player.
+ *
+ * Attempts a differential update (update rows in place, append/remove as
+ * needed) to avoid the scroll-position reset and O(n) allocation cost of a
+ * full gtk_tree_store_clear + rebuild.  Falls back to the full rebuild when
+ * an open container introduces child rows (nested tree structure) or when the
+ * item order has changed.
  */
 void draw_look_list() {
+    /* Container open on the ground → store has child rows; full rebuild. */
+    if (cpl.container && cpl.container->open
+            && cpl.container->env == cpl.below) {
+        goto full_rebuild_look;
+    }
+
+    if (try_diff_update_look())
+        return;
+
+full_rebuild_look:;
     item *tmp;
     GtkTreeIter iter;
-    /*
-     * List drawing is actually fairly inefficient - we only know globally if
-     * the objects has changed, but have no idea what specific object has
-     * changed.  As such, we are forced to basicly redraw the entire list each
-     * time this is called.
-     */
     gtk_tree_store_clear(store_look);
 
     for (tmp = cpl.below->inv; tmp; tmp = tmp->next) {
@@ -901,8 +987,67 @@ void draw_look_list() {
 }
 
 /**
+ * Attempt a differential update of the inventory treestore for the given tab.
+ *
+ * Walks the store and the (filtered) desired item list together.  Matching
+ * rows (same item* pointer) are updated in place; extra store rows are
+ * removed; missing items are appended.  Returns FALSE if the item order has
+ * changed, which signals the caller to fall back to a full rebuild.
+ */
+static gboolean try_diff_update_inv(int tab) {
+    GtkTreeIter iter;
+    gboolean have_row = gtk_tree_model_get_iter_first(
+                            GTK_TREE_MODEL(treestore), &iter);
+    item *tmp = cpl.ob->inv;
+
+    /* Advance to the first item visible in this tab. */
+    while (tmp && !(inv_notebooks[tab].show_func(tmp) & INV_SHOW_ITEM))
+        tmp = tmp->next;
+
+    while (tmp != NULL) {
+        int rowflag = inv_notebooks[tab].show_func(tmp);
+
+        if (!have_row) {
+            /* Store exhausted before desired list — append remaining items. */
+            GtkTreeIter new_iter;
+            add_object_to_store(tmp, treestore, &new_iter, NULL,
+                                rowflag & INV_SHOW_COLOR);
+            /* Advance to next visible item. */
+            tmp = tmp->next;
+            while (tmp && !(inv_notebooks[tab].show_func(tmp) & INV_SHOW_ITEM))
+                tmp = tmp->next;
+            continue;
+        }
+
+        item *store_item;
+        gtk_tree_model_get(GTK_TREE_MODEL(treestore), &iter,
+                           LIST_OBJECT, &store_item, -1);
+        if (store_item != tmp)
+            return FALSE;  /* Order changed — caller must full-rebuild. */
+
+        update_store_row(tmp, treestore, &iter, rowflag & INV_SHOW_COLOR);
+        have_row = gtk_tree_model_iter_next(GTK_TREE_MODEL(treestore), &iter);
+
+        tmp = tmp->next;
+        while (tmp && !(inv_notebooks[tab].show_func(tmp) & INV_SHOW_ITEM))
+            tmp = tmp->next;
+    }
+
+    /* Remove any leftover store rows (items removed from inventory). */
+    while (have_row)
+        have_row = gtk_tree_store_remove(treestore, &iter);
+
+    return TRUE;
+}
+
+/**
  * Draws the inventory window.  tab is the notebook tab we are drawing.  Has to
  * be passed in because the callback sets this before the notebook is updated.
+ *
+ * Attempts a differential update first (update rows in place, append/remove as
+ * needed) to avoid clearing and rebuilding the whole store on every change.
+ * Falls back to the full rebuild when an open container introduces child rows
+ * (nested tree structure) or when the item order has changed.
  *
  * @param tab
  */
@@ -911,12 +1056,16 @@ static void draw_inv_list(int tab) {
     GtkTreeIter iter;
     int rowflag;
 
-    /*
-     * List drawing is actually fairly inefficient - we only know globally if
-     * the objects has changed, but have no idea what specific object has
-     * changed.  As such, we are forced to basicly redraw the entire list each
-     * time this is called.
-     */
+    /* Container open in inventory → store has child rows; must full-rebuild. */
+    if (cpl.container && cpl.container->open
+            && cpl.container->env == cpl.ob) {
+        goto full_rebuild_inv;
+    }
+
+    if (try_diff_update_inv(tab))
+        return;
+
+full_rebuild_inv:;
     gtk_tree_store_clear(treestore);
 
     for (tmp = cpl.ob->inv; tmp; tmp = tmp->next) {
