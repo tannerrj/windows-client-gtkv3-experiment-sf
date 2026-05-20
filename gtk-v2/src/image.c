@@ -327,9 +327,10 @@ void image_update_download_status(int start, int end, int total) {
     }
 
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(pbar), (float)start / end);
-    while (gtk_events_pending()) {
-        gtk_main_iteration();
-    }
+    /* Dispatch one pending event to let the progress bar repaint without
+     * spinning until the queue empties (which risks indefinite blocking if
+     * animation timers or network callbacks keep producing new events). */
+    g_main_context_iteration(NULL, FALSE);
 }
 
 /**
