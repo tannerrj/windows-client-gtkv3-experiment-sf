@@ -36,7 +36,17 @@ static gboolean map_updated = FALSE;
 
 GtkWidget *map_notebook;
 static GtkWidget *map_drawing_area;
-static cairo_surface_t *map_surface = NULL; /* persistent off-screen map buffer */
+/* tile_surface holds tiles + labels without any sub-tile translation or darkness
+ * baked in.  It is the surface that gets blit-shifted by display_mapscroll().
+ * map_surface is the final composited output: tile_surface shifted by
+ * global_offset_x/y, with the darkness overlay applied on top. */
+static cairo_surface_t *tile_surface = NULL;
+static cairo_surface_t *map_surface  = NULL;
+
+/* Scroll-blit state set by display_mapscroll() and consumed by gtk_map_redraw(). */
+static gboolean map_scrolled  = FALSE;
+static int      map_scroll_dx = 0;
+static int      map_scroll_dy = 0;
 
 /* Viewport state used by dirty-region tracking to detect when a full redraw
  * is required vs. when visible tiles are unchanged and the frame can be skipped. */
@@ -113,8 +123,13 @@ void map_check_resize() {
  * @param window_root The client's main playing window.
  */
 void map_init(GtkWidget *window_root) {
-    /* Reset viewport tracking so the first frame after (re)connect forces a
+    /* Reset all rendering state so the first frame after (re)connect forces a
      * full redraw regardless of any stale last_* values. */
+    if (tile_surface) { cairo_surface_destroy(tile_surface); tile_surface = NULL; }
+    if (map_surface)  { cairo_surface_destroy(map_surface);  map_surface  = NULL; }
+    map_scrolled  = FALSE;
+    map_scroll_dx = 0;
+    map_scroll_dy = 0;
     last_mx_start = G_MININT;
     last_my_start = G_MININT;
     last_ew = 0.0;
@@ -201,16 +216,78 @@ static void draw_smooth_pixmap(cairo_t* cr, PixmapInfo* pixmap,
 }
 
 /**
- * Bitmap-based map scrolling stub. Returns 0 because bitmap scrolling
- * optimisation is not implemented for this display backend; the caller falls
- * back to a full redraw.
+ * Blit-shift the tile surface by the scroll delta so that unchanged tiles do
+ * not need to be redrawn.  Only the newly revealed edge strip (and any bigface
+ * boundary tiles marked by mapdata_scroll) is re-rendered each scroll step.
  *
- * @param dx Horizontal scroll distance in tiles (unused).
- * @param dy Vertical scroll distance in tiles (unused).
- * @return Always 0 (scroll not handled).
+ * Falls back to returning 0 (full redraw) when:
+ *   - tile_surface has not been allocated yet
+ *   - smooth pixel-lighting modes are active (interpolated darkness across the
+ *     full viewport cannot be applied correctly to a partial tile update)
+ *   - the scroll is diagonal (two strips would need to be redrawn, adding
+ *     complexity for limited benefit)
+ *   - the scroll distance equals or exceeds the entire surface width/height
+ *
+ * When returning 1, global_offset_x/y and want_offset_x/y are adjusted to
+ * maintain visual continuity: the blit shifts tile_surface by -pixel_dx so
+ * the old tile content stays at the same screen position; adding pixel_dx to
+ * global_offset_x exactly cancels that shift in the compose step, and
+ * decrementing want_offset_x by dx removes the consumed prediction so the
+ * animation target becomes correct.
+ *
+ * @param dx Horizontal scroll distance in tiles.
+ * @param dy Vertical scroll distance in tiles.
+ * @return 1 if the scroll blit was handled, 0 if the caller should full-redraw.
  */
 int display_mapscroll(int dx, int dy) {
+    if (tile_surface == NULL) return 0;
+    /* Smooth pixel-lit modes build a full-viewport interpolated light map;
+     * repainting only the edge strip would leave incorrect darkness values at
+     * the boundary of the redrawn area. */
+    if (use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL ||
+            use_config[CONFIG_LIGHTING] == CFG_LT_PIXEL_BEST)
         return 0;
+    /* Diagonal scrolls require two separate strips — not worth the complexity. */
+    if (dx != 0 && dy != 0) return 0;
+
+    const int pixel_dx = dx * map_image_size;
+    const int pixel_dy = dy * map_image_size;
+    const int sw = cairo_image_surface_get_width(tile_surface);
+    const int sh = cairo_image_surface_get_height(tile_surface);
+
+    if (abs(pixel_dx) >= sw || abs(pixel_dy) >= sh) return 0;
+
+    /* Blit-shift tile_surface via a temporary copy.  Cairo does not support
+     * using the same surface as both source and destination. */
+    cairo_surface_t *tmp = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, sw, sh);
+    cairo_t *cr = cairo_create(tmp);
+    cairo_set_source_surface(cr, tile_surface, 0, 0);
+    cairo_paint(cr);
+    cairo_destroy(cr);
+
+    cr = cairo_create(tile_surface);
+    cairo_set_source_rgb(cr, 0, 0, 0);
+    cairo_paint(cr);  /* black-fill newly exposed strip */
+    cairo_set_source_surface(cr, tmp, -pixel_dx, -pixel_dy);
+    cairo_paint(cr);
+    cairo_destroy(cr);
+    cairo_surface_destroy(tmp);
+
+    /* Maintain visual continuity: tile_surface content shifted by -pixel_dx,
+     * compose adds global_offset_x — net shift on screen is unchanged when
+     * global_offset_x is incremented by pixel_dx here.  Decrement want_offset
+     * by dx to remove the consumed prediction tile so the animation settles
+     * correctly toward the new resting position. */
+    global_offset_x += pixel_dx;
+    global_offset_y += pixel_dy;
+    want_offset_x   -= dx;
+    want_offset_y   -= dy;
+
+    map_scroll_dx = dx;
+    map_scroll_dy = dy;
+    map_scrolled  = TRUE;
+    map_updated   = TRUE;
+    return 1;
 }
 
 /**
@@ -528,58 +605,79 @@ static void draw_move_to(cairo_t *cr, int mx_start, int my_start) {
 }
 
 /**
- * Redraw the entire map using GTK.
+ * Redraw the map using a two-phase rendering approach.
  *
- * Dirty-region optimisations applied here:
- *   1. map_updated is cleared immediately so new server updates arriving
- *      during this frame will correctly schedule the next redraw.
- *   2. map_surface is reused across frames; it is only reallocated when the
- *      pixel dimensions of the drawing area change.
- *   3. When the viewport has not scrolled and the surface already exists, the
- *      per-tile need_update / need_resmooth flags are checked. If none of the
- *      visible tiles are dirty the frame is skipped entirely.
- *   4. After a successful redraw the dirty flags on all visible tiles are
- *      cleared so subsequent frames are skipped until new data arrives.
+ * Phase 1 — tile_surface update:
+ *   Tiles and labels are rendered into tile_surface without any sub-tile
+ *   translation baked in.  This surface can be blit-shifted by
+ *   display_mapscroll() so that most tiles survive unchanged across frames.
+ *
+ *   Three render paths:
+ *     a) Partial (do_partial): tile_surface was already blit-shifted by
+ *        display_mapscroll(); only the newly revealed edge strip is redrawn.
+ *     b) Full: entire tile_surface is black-filled and all tiles redrawn.
+ *     c) Skip: viewport stable, no dirty tiles, only animation running — the
+ *        compose step handles the offset change without touching tile_surface.
+ *
+ * Phase 2 — compose into map_surface:
+ *   tile_surface is blitted into map_surface with a cairo_translate() of
+ *   global_offset_x/y (sub-tile smooth-scroll prediction) and the darkness
+ *   overlay is applied on top.  This step always runs when we reach here,
+ *   ensuring animation frames update the display even without tile changes.
+ *
+ * Dirty-region optimisations:
+ *   1. map_updated cleared immediately so concurrent server packets reschedule.
+ *   2. Surfaces reused; reallocated only on pixel-dimension change.
+ *   3. When viewport is stable AND no animation is in progress, dirty flags are
+ *      scanned.  If none are set the entire frame is skipped.
+ *   4. When only animation is running (global_offset != 0, no tile changes),
+ *      tile_surface is not re-rendered — the compose step alone is cheap.
+ *   5. After each tile render the dirty flags are cleared.
  */
 static void gtk_map_redraw() {
     if (!map_updated) {
         return;
     }
-    /* Clear early so that new server data arriving while we render will set
-     * map_updated again and trigger the next frame correctly. */
+    /* Clear early so concurrent server packets reschedule correctly. */
     map_updated = FALSE;
 
     GtkAllocation size;
     gtk_widget_get_allocation(map_drawing_area, &size);
 
-    // Effective dimensions in pixels, i.e. after adjusting for map scale
-    float scale = use_config[CONFIG_MAPSCALE]/100.0;
+    float scale = use_config[CONFIG_MAPSCALE] / 100.0;
     const double ew = size.width / scale;
     const double eh = size.height / scale;
-
-    // Number of tiles to show in x and y dimensions
     const int nx = (int)ceilf(ew / map_image_size);
     const int ny = (int)ceilf(eh / map_image_size);
-
-    // Current viewport dimensions as sent by server, in squares
     const int vw = use_config[CONFIG_MAPWIDTH];
     const int vh = use_config[CONFIG_MAPHEIGHT];
+    const int mx_start = (nx > vw) ? pl_pos.x - (nx - vw) / 2 : pl_pos.x;
+    const int my_start = (ny > vh) ? pl_pos.y - (ny - vh) / 2 : pl_pos.y;
 
-    // The server always centers the player in the viewport. However, if our
-    // drawing area shows more tiles than the viewport, then the player is
-    // no longer centered. Correct that here.
-    const int mx_start = (nx > vw) ? pl_pos.x - (nx - vw)/2 : pl_pos.x;
-    const int my_start = (ny > vh) ? pl_pos.y - (ny - vh)/2 : pl_pos.y;
+    const gboolean size_changed = (ew != last_ew || eh != last_eh);
 
-    const gboolean viewport_moved = (mx_start != last_mx_start || my_start != last_my_start);
-    const gboolean size_changed   = (ew != last_ew || eh != last_eh);
+    /* Consume the scroll-blit flag.  do_partial is only valid when surfaces
+     * exist and pixel dimensions have not changed (which would invalidate the
+     * blit anyway). */
+    const gboolean do_partial = map_scrolled
+                                && !size_changed
+                                && tile_surface != NULL
+                                && map_surface  != NULL;
+    map_scrolled = FALSE;
 
-    /* When the viewport is stable and the surface already covers it, scan
-     * visible tiles for the need_update / need_resmooth dirty flags.  If
-     * none are set, nothing visible changed this frame and we can skip the
-     * expensive full redraw entirely. */
-    if (!viewport_moved && !size_changed && map_surface != NULL) {
-        gboolean any_dirty = FALSE;
+    /* vp_stable: no blit pending, surfaces exist, viewport origin unchanged. */
+    const gboolean surfaces_ok = tile_surface != NULL && map_surface != NULL && !size_changed;
+    const gboolean vp_stable   = surfaces_ok && !do_partial
+                                  && mx_start == last_mx_start
+                                  && my_start == last_my_start;
+    const gboolean animating   = global_offset_x != 0 || global_offset_y != 0;
+
+    /* When the viewport is stable, scan dirty flags.
+     * - No animation + no dirty tiles: skip the frame entirely.
+     * - Animation + no dirty tiles: recompose only (tile_surface unchanged).
+     * - Any dirty tiles: must re-render tile_surface regardless of animation. */
+    gboolean any_dirty = FALSE;
+    if (vp_stable) {
         for (int x = 0; x <= nx && !any_dirty; x++) {
             for (int y = 0; y <= ny && !any_dirty; y++) {
                 const int mx = mx_start + x, my = my_start + y;
@@ -590,61 +688,86 @@ static void gtk_map_redraw() {
                 }
             }
         }
-        if (!any_dirty) {
-            return;
-        }
+        if (!animating && !any_dirty) return;
     }
 
-    /* Recreate the off-screen surface only when its pixel dimensions change.
-     * Reusing the existing surface avoids a large allocation/free per frame. */
-    if (size_changed || map_surface == NULL) {
-        if (map_surface) {
-            cairo_surface_destroy(map_surface);
-        }
-        map_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)ew, (int)eh);
+    /* Recreate both surfaces when pixel dimensions change. */
+    if (!surfaces_ok) {
+        if (tile_surface) { cairo_surface_destroy(tile_surface); tile_surface = NULL; }
+        if (map_surface)  { cairo_surface_destroy(map_surface);  map_surface  = NULL; }
+        tile_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)ew, (int)eh);
+        map_surface  = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)ew, (int)eh);
         last_ew = ew;
         last_eh = eh;
     }
 
-    cairo_t *cr = cairo_create(map_surface);
+    /* Phase 1: Update tile_surface.
+     * Skip when the viewport is stable, animation is the only thing changing,
+     * and no tile data has changed — the compose step alone handles it. */
+    const gboolean skip_tile_update = vp_stable && animating && !any_dirty;
+    if (!skip_tile_update) {
+        cairo_t *cr = cairo_create(tile_surface);
 
-    // Blank graphics context with a solid black background.
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_rectangle(cr, 0, 0, ew, eh);
-    cairo_fill(cr);
+        if (do_partial) {
+            /* Clip to the newly revealed edge strip plus a one-tile inner
+             * border so that adjacent smoothing tiles are also recalculated.
+             * Tiles outside the clip retain their blit-shifted content. */
+            int cx0 = 0, cy0 = 0, cx1 = nx, cy1 = ny;
+            if (map_scroll_dx > 0) cx0 = MAX(0,  nx - map_scroll_dx - 1);
+            if (map_scroll_dx < 0) cx1 = MIN(nx, -map_scroll_dx);
+            if (map_scroll_dy > 0) cy0 = MAX(0,  ny - map_scroll_dy - 1);
+            if (map_scroll_dy < 0) cy1 = MIN(ny, -map_scroll_dy);
+            cairo_rectangle(cr,
+                            (double)cx0 * map_image_size,
+                            (double)cy0 * map_image_size,
+                            (double)(cx1 - cx0 + 1) * map_image_size,
+                            (double)(cy1 - cy0 + 1) * map_image_size);
+            cairo_clip(cr);
+        } else {
+            cairo_set_source_rgb(cr, 0, 0, 0);
+            cairo_paint(cr);
+        }
 
-    // Set global offset (after blanking background)
-    cairo_translate(cr, global_offset_x, global_offset_y);
+        /* Draw layer-by-layer so big faces are correctly layered on top. */
+        for (int layer = 0; layer < MAXLAYERS; layer++) {
+            map_draw_layer(cr, layer, mx_start, nx, my_start, ny);
+        }
+        draw_move_to(cr, mx_start, my_start);
+        map_draw_labels(cr, mx_start, nx, my_start, ny);
+        cairo_destroy(cr);
 
-    // Draw layer-by-layer. Drawing cell-by-cell, looping over the layers,
-    // doesn't work because big faces need to be correctly layered on top.
-    for (int layer = 0; layer < MAXLAYERS; layer++) {
-        map_draw_layer(cr, layer, mx_start, nx, my_start, ny);
-    }
-
-    draw_move_to(cr, mx_start, my_start);
-    map_draw_labels(cr, mx_start, nx, my_start, ny);
-
-    if (use_config[CONFIG_LIGHTING] != 0) {
-        draw_darkness(cr, nx, ny, mx_start, my_start);
-    }
-    cairo_destroy(cr);
-
-    /* Clear dirty flags on all visible tiles now that they have been redrawn.
-     * Subsequent frames will be skipped until the server or animations mark
-     * cells dirty again. */
-    for (int x = 0; x <= nx; x++) {
-        for (int y = 0; y <= ny; y++) {
-            const int mx = mx_start + x, my = my_start + y;
-            if (mapdata_contains(mx, my)) {
-                mapdata_cell(mx, my)->need_update = 0;
-                mapdata_cell(mx, my)->need_resmooth = 0;
+        /* Clear dirty flags; subsequent frames are skipped until new data. */
+        for (int x = 0; x <= nx; x++) {
+            for (int y = 0; y <= ny; y++) {
+                const int mx = mx_start + x, my = my_start + y;
+                if (mapdata_contains(mx, my)) {
+                    mapdata_cell(mx, my)->need_update   = 0;
+                    mapdata_cell(mx, my)->need_resmooth = 0;
+                }
             }
         }
+
+        last_mx_start = mx_start;
+        last_my_start = my_start;
     }
 
-    last_mx_start = mx_start;
-    last_my_start = my_start;
+    /* Phase 2: Compose tile_surface into map_surface.
+     * Apply the sub-tile smooth-scroll prediction offset and the darkness
+     * overlay.  Both transforms use the same CTM so they stay aligned. */
+    {
+        cairo_t *cr = cairo_create(map_surface);
+        /* Black fill for pixels outside the shifted tile content. */
+        cairo_set_source_rgb(cr, 0, 0, 0);
+        cairo_paint(cr);
+        /* Sub-tile prediction offset — shifts both tiles and darkness. */
+        cairo_translate(cr, global_offset_x, global_offset_y);
+        cairo_set_source_surface(cr, tile_surface, 0, 0);
+        cairo_paint(cr);
+        if (use_config[CONFIG_LIGHTING] != 0) {
+            draw_darkness(cr, nx, ny, mx_start, my_start);
+        }
+        cairo_destroy(cr);
+    }
 
     gtk_widget_queue_draw(map_drawing_area);
 }
