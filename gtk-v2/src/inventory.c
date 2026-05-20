@@ -45,6 +45,11 @@ GtkWidget *treeview_look;
 /** Color to use to indicate that an item is applied (medium gray). */
 static const GdkRGBA applied_color = {0.7629, 0.7629, 0.7629, 1.0};
 
+/* Shared CSS provider for the "applied" item background.  Allocated once on
+ * first use (draw_inv_table) and reused for every cell; avoids per-item
+ * GtkCssProvider allocation + CSS string parsing on every inventory redraw. */
+static GtkCssProvider *applied_css_provider = NULL;
+
 static GtkTreeStore *store_look;
 static GtkWidget *encumbrance_current;
 static GtkWidget *encumbrance_max;
@@ -1154,6 +1159,20 @@ static void draw_inv_table(int animate) {
     char buf[256];
     gulong handler;
 
+    /* Build the shared applied-state CSS provider on first use.  The CSS
+     * content is constant (derived from the applied_color compile-time
+     * constant), so one provider suffices for every cell for the session. */
+    if (applied_css_provider == NULL) {
+        applied_css_provider = gtk_css_provider_new();
+        snprintf(buf, sizeof(buf),
+                 "* { background-color: rgba(%d,%d,%d,%.3f); }",
+                 (int)(applied_color.red   * 255),
+                 (int)(applied_color.green * 255),
+                 (int)(applied_color.blue  * 255),
+                 applied_color.alpha);
+        gtk_css_provider_load_from_data(applied_css_provider, buf, -1, NULL);
+    }
+
     num_items = 0;
     for (tmp = cpl.ob->inv; tmp; tmp = tmp->next) {
         num_items++;
@@ -1257,30 +1276,25 @@ static void draw_inv_table(int animate) {
             /* Draw the inventory icon image to the table. */
             gtk_widget_queue_draw(INV_TABLE_AT(x, y, columns));
 
-            /* Draw an extra indicator if the item is applied via CSS. */
+            /* Apply or remove the shared "applied" background provider.
+             * Only add/remove when the applied state actually changes on
+             * this cell; skip the style-context call entirely when nothing
+             * has changed (the common case for most items). */
             {
                 GtkWidget *cell = INV_TABLE_AT(x, y, columns);
                 GtkStyleContext *ctx = gtk_widget_get_style_context(cell);
-                GtkCssProvider *prev =
-                    g_object_get_data(G_OBJECT(cell), "inv-color-provider");
-                if (prev) {
-                    gtk_style_context_remove_provider(ctx, GTK_STYLE_PROVIDER(prev));
-                    g_object_set_data(G_OBJECT(cell), "inv-color-provider", NULL);
-                }
-                if (tmp->applied) {
-                    char css[128];
-                    GtkCssProvider *provider = gtk_css_provider_new();
-                    snprintf(css, sizeof(css),
-                             "* { background-color: rgba(%d,%d,%d,%.3f); }",
-                             (int)(applied_color.red   * 255),
-                             (int)(applied_color.green * 255),
-                             (int)(applied_color.blue  * 255),
-                             applied_color.alpha);
-                    gtk_css_provider_load_from_data(provider, css, -1, NULL);
-                    gtk_style_context_add_provider(ctx, GTK_STYLE_PROVIDER(provider),
-                                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-                    g_object_set_data_full(G_OBJECT(cell), "inv-color-provider",
-                                           provider, g_object_unref);
+                gboolean was_applied = GPOINTER_TO_INT(
+                    g_object_get_data(G_OBJECT(cell), "inv-applied"));
+                if (was_applied && !tmp->applied) {
+                    gtk_style_context_remove_provider(ctx,
+                            GTK_STYLE_PROVIDER(applied_css_provider));
+                    g_object_set_data(G_OBJECT(cell), "inv-applied", NULL);
+                } else if (!was_applied && tmp->applied) {
+                    gtk_style_context_add_provider(ctx,
+                            GTK_STYLE_PROVIDER(applied_css_provider),
+                            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+                    g_object_set_data(G_OBJECT(cell), "inv-applied",
+                                      GINT_TO_POINTER(1));
                 }
             }
 
