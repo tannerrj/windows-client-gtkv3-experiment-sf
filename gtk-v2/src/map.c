@@ -57,6 +57,16 @@ static int              lm_last_nx   = -1;
 static int              lm_last_ny   = -1;
 static int              lm_last_mode = -1;  /* CONFIG_LIGHTING value at last alloc */
 
+/* Direct pixel access into tile_surface for draw_smooth_pixmap().
+ * Set to tile_surface's buffer at the start of each full tile render pass
+ * so smooth sub-tile blits bypass Cairo's per-call compositor overhead.
+ * NULL outside the render pass (or during partial scroll updates where the
+ * Cairo clip region must be respected). */
+static uint8_t *tile_px_data   = NULL;
+static int      tile_px_stride = 0;
+static int      tile_px_w      = 0;
+static int      tile_px_h      = 0;
+
 /* Viewport state used by dirty-region tracking to detect when a full redraw
  * is required vs. when visible tiles are unchanged and the frame can be skipped. */
 static int    last_mx_start = G_MININT;
@@ -140,6 +150,7 @@ void map_init(GtkWidget *window_root) {
     lm_last_nx   = -1;
     lm_last_ny   = -1;
     lm_last_mode = -1;
+    tile_px_data = NULL;
     map_scrolled  = FALSE;
     map_scroll_dx = 0;
     map_scroll_dy = 0;
@@ -207,25 +218,73 @@ static void draw_pixmap(cairo_t *cr, PixmapInfo *pixmap, int ax, int ay) {
 }
 
 /**
- * Draw a tile-sized sub-region of a smooth pixmap at a destination map cell.
- * Used to composite edge-blending tiles on top of neighbouring cells.
+ * Composite a tile-sized sub-region of a smooth pixmap over a destination
+ * map cell.  Used to draw edge-blending tiles on top of neighbouring cells.
  *
- * @param cr     Cairo context for the map drawing area.
+ * In full-redraw mode (tile_px_data != NULL) this blends directly into
+ * tile_surface's pixel buffer using a hand-written premultiplied ARGB32 OVER
+ * loop, avoiding Cairo's per-call compositor overhead (source pattern setup,
+ * path rasterisation, and pixman dispatch).  In partial-update (scroll) mode
+ * it falls back to the Cairo path so the clip region set on cr is respected.
+ *
+ * @param cr     Cairo context (used only in the fallback path).
  * @param pixmap Smooth pixmap to draw from.
- * @param sx     Source tile column in the pixmap sheet.
- * @param sy     Source tile row in the pixmap sheet.
- * @param dx     Destination tile column on screen.
- * @param dy     Destination tile row on screen.
+ * @param sx     Source tile column in the smooth sheet (0-15).
+ * @param sy     Source tile row in the smooth sheet (0 = border, 1 = corner).
+ * @param dx     Destination tile column on the tile surface.
+ * @param dy     Destination tile row on the tile surface.
  */
 static void draw_smooth_pixmap(cairo_t* cr, PixmapInfo* pixmap,
         const int sx, const int sy, const int dx, const int dy) {
-    const int src_x = map_image_size * sx;
-    const int src_y = map_image_size * sy;
-    const int dest_x = map_image_size * dx;
-    const int dest_y = map_image_size * dy;
-    cairo_set_source_surface(cr, pixmap->map_image, dest_x - src_x, dest_y - src_y);
-    cairo_rectangle(cr, dest_x, dest_y, map_image_size, map_image_size);
-    cairo_fill(cr);
+    const int mis    = map_image_size;
+    const int dest_x = mis * dx;
+    const int dest_y = mis * dy;
+    const int src_x  = mis * sx;
+    const int src_y  = mis * sy;
+
+    /* Fallback: partial-update mode or non-image source. */
+    if (tile_px_data == NULL) {
+        cairo_set_source_surface(cr, pixmap->map_image, dest_x - src_x, dest_y - src_y);
+        cairo_rectangle(cr, dest_x, dest_y, mis, mis);
+        cairo_fill(cr);
+        return;
+    }
+
+    const uint8_t *src_data = cairo_image_surface_get_data(pixmap->map_image);
+    if (src_data == NULL) {
+        cairo_set_source_surface(cr, pixmap->map_image, dest_x - src_x, dest_y - src_y);
+        cairo_rectangle(cr, dest_x, dest_y, mis, mis);
+        cairo_fill(cr);
+        return;
+    }
+    const int src_stride = cairo_image_surface_get_stride(pixmap->map_image);
+
+    /* Clip destination to tile_surface bounds (normally a no-op). */
+    const int x0 = MAX(dest_x, 0), x1 = MIN(dest_x + mis, tile_px_w);
+    const int y0 = MAX(dest_y, 0), y1 = MIN(dest_y + mis, tile_px_h);
+    if (x0 >= x1 || y0 >= y1) return;
+
+    for (int y = y0; y < y1; y++) {
+        const uint32_t *srow = (const uint32_t *)(src_data
+                              + (src_y + y - dest_y) * src_stride) + src_x;
+        uint32_t       *drow = (uint32_t *)(tile_px_data + y * tile_px_stride) + x0;
+        for (int x = x0; x < x1; x++) {
+            const uint32_t sp = srow[x - dest_x];
+            const uint32_t sa = sp >> 24;
+            if (sa == 0)   { drow++; continue; }
+            if (sa == 255) { *drow++ = sp; continue; }
+            /* Premultiplied OVER: out = src + dst × (1 − sa/255).
+             * Process R+B and A+G in parallel using 16-bit lanes of uint32_t.
+             * No overflow: each 8-bit channel × (256−sa) ≤ 255×256 = 65280 < 65536. */
+            const uint32_t inv = 256 - sa;
+            const uint32_t dp  = *drow;
+            const uint32_t rb  = (sp & 0x00FF00FF)
+                               + (((dp & 0x00FF00FF) * inv) >> 8 & 0x00FF00FF);
+            const uint32_t ag  = ((sp >> 8) & 0x00FF00FF)
+                               + ((((dp >> 8) & 0x00FF00FF) * inv) >> 8 & 0x00FF00FF);
+            *drow++ = (ag << 8) | rb;
+        }
+    }
 }
 
 /**
@@ -807,10 +866,28 @@ static void gtk_map_redraw() {
             cairo_paint(cr);
         }
 
+        /* Expose tile_surface's pixel buffer for direct blending in
+         * draw_smooth_pixmap().  Skipped in partial-update mode because
+         * direct pixel writes bypass Cairo's clip region. */
+        if (!do_partial) {
+            cairo_surface_flush(tile_surface);
+            tile_px_data   = cairo_image_surface_get_data(tile_surface);
+            tile_px_stride = cairo_image_surface_get_stride(tile_surface);
+            tile_px_w      = (int)ew;
+            tile_px_h      = (int)eh;
+        }
+
         /* Draw layer-by-layer so big faces are correctly layered on top. */
         for (int layer = 0; layer < MAXLAYERS; layer++) {
             map_draw_layer(cr, layer, mx_start, nx, my_start, ny);
         }
+
+        if (tile_px_data != NULL) {
+            /* Notify Cairo that the pixel buffer was modified directly. */
+            cairo_surface_mark_dirty(tile_surface);
+            tile_px_data = NULL;
+        }
+
         draw_move_to(cr, mx_start, my_start);
         map_draw_labels(cr, mx_start, nx, my_start, ny);
         cairo_destroy(cr);
