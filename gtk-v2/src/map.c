@@ -718,7 +718,11 @@ static void gtk_map_redraw() {
         if (tile_surface) { cairo_surface_destroy(tile_surface); tile_surface = NULL; }
         if (map_surface)  { cairo_surface_destroy(map_surface);  map_surface  = NULL; }
         tile_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)ew, (int)eh);
-        map_surface  = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)ew, (int)eh);
+        /* map_surface is the final composited output painted directly to the
+         * screen widget.  It has a black background and is always fully opaque
+         * so RGB24 suffices — avoiding an unnecessary alpha channel halves the
+         * per-pixel blend cost in the final screen blit. */
+        map_surface  = cairo_image_surface_create(CAIRO_FORMAT_RGB24,  (int)ew, (int)eh);
         last_ew = ew;
         last_eh = eh;
     }
@@ -775,12 +779,19 @@ static void gtk_map_redraw() {
 
     /* Phase 2: Compose tile_surface into map_surface.
      * Apply the sub-tile smooth-scroll prediction offset and the darkness
-     * overlay.  Both transforms use the same CTM so they stay aligned. */
+     * overlay.  Both transforms use the same CTM so they stay aligned.
+     *
+     * The black fill uses OPERATOR_SOURCE: map_surface is RGB24 (fully
+     * opaque), so SOURCE is equivalent to OVER for a solid colour but avoids
+     * the multiply-by-alpha arithmetic in Cairo's software renderer — useful
+     * on the GDK Win32 backend which has no GPU path.  OVER is restored before
+     * blitting tile_surface so transparent sprite pixels blend correctly. */
     {
         cairo_t *cr = cairo_create(map_surface);
-        /* Black fill for pixels outside the shifted tile content. */
+        cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
         cairo_set_source_rgb(cr, 0, 0, 0);
         cairo_paint(cr);
+        cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
         /* Sub-tile prediction offset — shifts both tiles and darkness. */
         cairo_translate(cr, global_offset_x, global_offset_y);
         cairo_set_source_surface(cr, tile_surface, 0, 0);
@@ -873,6 +884,10 @@ static gboolean map_expose_event(GtkWidget *widget, cairo_t *cr,
     if (use_config[CONFIG_MAPSCALE] % 100 == 0) {
         cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
     }
+    /* map_surface is RGB24 (fully opaque).  OPERATOR_SOURCE replaces the
+     * destination directly without alpha blending, which is both correct and
+     * faster than the default OVER on Cairo's software renderer. */
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
     cairo_paint(cr);
     return FALSE;
 }
