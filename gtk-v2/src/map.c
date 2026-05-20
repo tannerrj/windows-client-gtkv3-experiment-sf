@@ -38,6 +38,13 @@ GtkWidget *map_notebook;
 static GtkWidget *map_drawing_area;
 static cairo_surface_t *map_surface = NULL; /* persistent off-screen map buffer */
 
+/* Viewport state used by dirty-region tracking to detect when a full redraw
+ * is required vs. when visible tiles are unchanged and the frame can be skipped. */
+static int    last_mx_start = G_MININT;
+static int    last_my_start = G_MININT;
+static double last_ew = 0.0;
+static double last_eh = 0.0;
+
 // Forward declarations for events
 static gboolean map_button_event(GtkWidget *widget,
         GdkEventButton *event, gpointer user_data);
@@ -106,6 +113,14 @@ void map_check_resize() {
  * @param window_root The client's main playing window.
  */
 void map_init(GtkWidget *window_root) {
+    /* Reset viewport tracking so the first frame after (re)connect forces a
+     * full redraw regardless of any stale last_* values. */
+    last_mx_start = G_MININT;
+    last_my_start = G_MININT;
+    last_ew = 0.0;
+    last_eh = 0.0;
+    map_updated = TRUE;
+
     static gulong map_button_handler = 0;
     map_drawing_area = GTK_WIDGET(gtk_builder_get_object(
                 window_xml, "drawingarea_map"));
@@ -514,11 +529,25 @@ static void draw_move_to(cairo_t *cr, int mx_start, int my_start) {
 
 /**
  * Redraw the entire map using GTK.
+ *
+ * Dirty-region optimisations applied here:
+ *   1. map_updated is cleared immediately so new server updates arriving
+ *      during this frame will correctly schedule the next redraw.
+ *   2. map_surface is reused across frames; it is only reallocated when the
+ *      pixel dimensions of the drawing area change.
+ *   3. When the viewport has not scrolled and the surface already exists, the
+ *      per-tile need_update / need_resmooth flags are checked. If none of the
+ *      visible tiles are dirty the frame is skipped entirely.
+ *   4. After a successful redraw the dirty flags on all visible tiles are
+ *      cleared so subsequent frames are skipped until new data arrives.
  */
 static void gtk_map_redraw() {
     if (!map_updated) {
         return;
     }
+    /* Clear early so that new server data arriving while we render will set
+     * map_updated again and trigger the next frame correctly. */
+    map_updated = FALSE;
 
     GtkAllocation size;
     gtk_widget_get_allocation(map_drawing_area, &size);
@@ -542,9 +571,42 @@ static void gtk_map_redraw() {
     const int mx_start = (nx > vw) ? pl_pos.x - (nx - vw)/2 : pl_pos.x;
     const int my_start = (ny > vh) ? pl_pos.y - (ny - vh)/2 : pl_pos.y;
 
-    // Create double buffer and associated graphics context.
-    cairo_surface_t *cst = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, ew, eh);
-    cairo_t *cr = cairo_create(cst);
+    const gboolean viewport_moved = (mx_start != last_mx_start || my_start != last_my_start);
+    const gboolean size_changed   = (ew != last_ew || eh != last_eh);
+
+    /* When the viewport is stable and the surface already covers it, scan
+     * visible tiles for the need_update / need_resmooth dirty flags.  If
+     * none are set, nothing visible changed this frame and we can skip the
+     * expensive full redraw entirely. */
+    if (!viewport_moved && !size_changed && map_surface != NULL) {
+        gboolean any_dirty = FALSE;
+        for (int x = 0; x <= nx && !any_dirty; x++) {
+            for (int y = 0; y <= ny && !any_dirty; y++) {
+                const int mx = mx_start + x, my = my_start + y;
+                if (mapdata_contains(mx, my) &&
+                        (mapdata_cell(mx, my)->need_update ||
+                         mapdata_cell(mx, my)->need_resmooth)) {
+                    any_dirty = TRUE;
+                }
+            }
+        }
+        if (!any_dirty) {
+            return;
+        }
+    }
+
+    /* Recreate the off-screen surface only when its pixel dimensions change.
+     * Reusing the existing surface avoids a large allocation/free per frame. */
+    if (size_changed || map_surface == NULL) {
+        if (map_surface) {
+            cairo_surface_destroy(map_surface);
+        }
+        map_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)ew, (int)eh);
+        last_ew = ew;
+        last_eh = eh;
+    }
+
+    cairo_t *cr = cairo_create(map_surface);
 
     // Blank graphics context with a solid black background.
     cairo_set_source_rgb(cr, 0, 0, 0);
@@ -568,11 +630,22 @@ static void gtk_map_redraw() {
     }
     cairo_destroy(cr);
 
-    /* Store the rendered surface and schedule a draw via the GTK3 draw signal. */
-    if (map_surface) {
-        cairo_surface_destroy(map_surface);
+    /* Clear dirty flags on all visible tiles now that they have been redrawn.
+     * Subsequent frames will be skipped until the server or animations mark
+     * cells dirty again. */
+    for (int x = 0; x <= nx; x++) {
+        for (int y = 0; y <= ny; y++) {
+            const int mx = mx_start + x, my = my_start + y;
+            if (mapdata_contains(mx, my)) {
+                mapdata_cell(mx, my)->need_update = 0;
+                mapdata_cell(mx, my)->need_resmooth = 0;
+            }
+        }
     }
-    map_surface = cst;
+
+    last_mx_start = mx_start;
+    last_my_start = my_start;
+
     gtk_widget_queue_draw(map_drawing_area);
 }
 
@@ -605,7 +678,16 @@ void draw_map() {
     gint64 t_start, t_end;
     t_start = g_get_monotonic_time();
 
+    /* If the local-prediction scroll offset is still animating toward zero,
+     * a redraw is needed even when no tile data changed.  Detect that before
+     * calling gtk_map_redraw() so the animation does not stall. */
+    const int prev_offset_x = global_offset_x;
+    const int prev_offset_y = global_offset_y;
     update_global_offset();
+    if (global_offset_x != prev_offset_x || global_offset_y != prev_offset_y) {
+        map_updated = TRUE;
+    }
+
     gtk_map_redraw();
 
     t_end = g_get_monotonic_time();
