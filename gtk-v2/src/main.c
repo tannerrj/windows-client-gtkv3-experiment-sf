@@ -135,11 +135,15 @@ static gboolean script_launch(const gchar *option_name, const gchar *value, gpoi
    return TRUE;
 }
 
+/* Non-zero while a redraw idle callback is queued; prevents duplicate queuing. */
+static guint redraw_idle_id = 0;
+
 /**
  * Redraw the map. Do a full redraw if there are new images to show. Return
  * false to unregister this event source after one redraw.
  */
 static gboolean redraw(gpointer data) {
+    redraw_idle_id = 0;
     // Add a check for client_is_connected so that forced socket termination
     // does not erroneously attempt to redraw the map after it has been destroyed.
     if (client_is_connected()) {
@@ -282,7 +286,8 @@ static gboolean do_network(GObject *stream, gpointer data) {
  */
 static gboolean self_tick(gpointer data) {
     if (playing) {
-        g_idle_add(redraw, NULL);
+        if (redraw_idle_id == 0)
+            redraw_idle_id = g_idle_add(redraw, NULL);
 
         if (!is_afk && use_config[CONFIG_AUTO_AFK] != 0 && time(NULL) > (last_command_sent + use_config[CONFIG_AUTO_AFK])) {
             auto_afk();
