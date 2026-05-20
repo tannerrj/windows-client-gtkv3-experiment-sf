@@ -92,6 +92,10 @@ int global_offset_y = 0;
 int want_offset_x = 0;
 int want_offset_y = 0;
 
+/* One past the highest animations[] index that has ever had a SYNC speed
+ * assigned.  mapdata_animation() only needs to scan up to this index. */
+static int anim_sync_max = 0;
+
 static void recenter_virtual_map_view(int diff_x, int diff_y);
 static void mapdata_get_image_size(int face, guint8 *w, guint8 *h);
 static void expand_need_update(int x, int y, int w, int h);
@@ -935,6 +939,8 @@ void mapdata_set_anim_layer(int x, int y, guint16 anim, guint8 anim_speed, int l
         speed_left = anim_speed % g_random_int();
     } else if ((anim & ANIM_FLAGS_MASK) == ANIM_SYNC) {
         animations[animation].speed = anim_speed;
+        if (animation + 1 > anim_sync_max)
+            anim_sync_max = animation + 1;
         phase = animations[animation].phase;
         speed_left = animations[animation].speed_left;
         face = animations[animation].faces[phase];
@@ -1414,7 +1420,7 @@ void mapdata_animation(void)
      * special.  But we have to update the animations[] array here to
      * keep in sync.
      */
-    for (x=0; x < MAXANIM; x++) {
+    for (x=0; x < anim_sync_max; x++) {
         if (animations[x].speed) {
             animations[x].speed_left++;
             if (animations[x].speed_left >= animations[x].speed) {
