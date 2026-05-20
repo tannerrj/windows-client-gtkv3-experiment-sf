@@ -1196,6 +1196,15 @@ static void draw_inv_table(int animate) {
 
             gtk_grid_attach(GTK_GRID(inv_table), INV_TABLE_AT(x, y, columns),
                             x, y, 1, 1);
+            /* Set the event mask once at cell creation.  Only button-press is
+             * needed here; GDK_POINTER_MOTION_MASK and GDK_LEAVE_NOTIFY_MASK
+             * are added automatically by GTK when gtk_widget_set_tooltip_text()
+             * is called below (GTK sets them when has-tooltip becomes TRUE).
+             * GDK_ALL_EVENTS_MASK was the original value but it subscribes to
+             * every possible event type (motion, key, scroll, structure, …),
+             * routing all of them through the GDK event queue for each cell. */
+            gtk_widget_add_events(INV_TABLE_AT(x, y, columns),
+                                  GDK_BUTTON_PRESS_MASK);
         }
         if (animate) {
             /* This is an object with animations */
@@ -1236,12 +1245,6 @@ static void draw_inv_table(int animate) {
             if (handler) {
                 g_signal_handler_disconnect((gpointer) INV_TABLE_AT(x, y, columns), handler);
             }
-            /*
-             * Not positive precisely what events are needed, but some events
-             * beyond just the button press are necessary for the tooltips to
-             * work.
-             */
-            gtk_widget_add_events(INV_TABLE_AT(x, y, columns), GDK_ALL_EVENTS_MASK);
 
             g_signal_connect((gpointer) INV_TABLE_AT(x, y, columns), "button_press_event",
                     G_CALLBACK(drawingarea_inventory_table_button_press_event),
