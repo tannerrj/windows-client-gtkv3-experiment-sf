@@ -48,12 +48,14 @@ static gboolean map_scrolled  = FALSE;
 static int      map_scroll_dx = 0;
 static int      map_scroll_dy = 0;
 
-/* Cached light-map surface for draw_darkness().  Reallocated only when the
- * number of visible tiles changes; its pixel content is overwritten each frame
- * via direct buffer writes rather than per-pixel Cairo drawing calls. */
-static cairo_surface_t *lm_surface = NULL;
-static int              lm_last_nx = -1;
-static int              lm_last_ny = -1;
+/* Cached light-map surface for draw_darkness().  In tile mode the surface is
+ * (nx+2)×(ny+2) and Cairo upscales it.  In pixel mode it is pre-expanded to
+ * (nx+2)*mis × (ny+2)*mis using manual bilinear interpolation so Cairo only
+ * needs a 1:1 NEAREST blit — avoiding CAIRO_FILTER_GOOD/BEST on every frame. */
+static cairo_surface_t *lm_surface   = NULL;
+static int              lm_last_nx   = -1;
+static int              lm_last_ny   = -1;
+static int              lm_last_mode = -1;  /* CONFIG_LIGHTING value at last alloc */
 
 /* Viewport state used by dirty-region tracking to detect when a full redraw
  * is required vs. when visible tiles are unchanged and the frame can be skipped. */
@@ -135,8 +137,9 @@ void map_init(GtkWidget *window_root) {
     if (tile_surface) { cairo_surface_destroy(tile_surface); tile_surface = NULL; }
     if (map_surface)  { cairo_surface_destroy(map_surface);  map_surface  = NULL; }
     if (lm_surface)   { cairo_surface_destroy(lm_surface);   lm_surface   = NULL; }
-    lm_last_nx = -1;
-    lm_last_ny = -1;
+    lm_last_nx   = -1;
+    lm_last_ny   = -1;
+    lm_last_mode = -1;
     map_scrolled  = FALSE;
     map_scroll_dx = 0;
     map_scroll_dy = 0;
@@ -542,56 +545,106 @@ static double mapcell_darkness(int mx, int my) {
  * @param my_start Virtual map y coordinate of the top-left tile.
  */
 static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_start) {
-    /* Reallocate the cached surface only when the tile count changes. */
-    if (lm_surface == NULL || nx != lm_last_nx || ny != lm_last_ny) {
-        if (lm_surface) cairo_surface_destroy(lm_surface);
-        lm_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, nx + 2, ny + 2);
-        lm_last_nx = nx;
-        lm_last_ny = ny;
+    const int lighting   = use_config[CONFIG_LIGHTING];
+    const int mis        = map_image_size;
+    const int tw         = nx + 2;   /* tile-surface width  (border + viewport + border) */
+    const int th         = ny + 2;   /* tile-surface height */
+    const gboolean pixel_mode = (lighting == CFG_LT_PIXEL || lighting == CFG_LT_PIXEL_BEST);
+
+    /* Collect per-tile alpha values into a flat buffer.
+     *
+     * The buffer has one entry per cell in the (tw × th) tile grid.  Cells at
+     * the edges (indices 0 and tw-1/th-1) are clamped to the nearest in-bounds
+     * map tile to prevent border artefacts when interpolating.
+     *
+     * ARGB32 premultiplied: black with opacity A is (A<<24)|0, so only the
+     * alpha channel needs to be non-zero.  We store uint8_t here and promote
+     * to uint32_t when writing the surface. */
+    uint8_t tile_alpha[tw * th];
+    for (int sy = 0; sy < th; sy++) {
+        const int my = my_start + MIN(MAX(sy - 1, 0), ny);
+        for (int sx = 0; sx < tw; sx++) {
+            const int mx = mx_start + MIN(MAX(sx - 1, 0), nx);
+            const double opacity = mapcell_darkness(mx, my);
+            tile_alpha[sy * tw + sx] = (uint8_t)(opacity * 255.0 + 0.5);
+        }
     }
 
-    /* Write darkness values directly into the pixel buffer.
-     *
-     * The surface is (nx+2) × (ny+2): one pixel per visible tile plus a
-     * one-pixel border on all sides (sampled from the edge tiles) to prevent
-     * interpolation artefacts when the light map is scaled up.
-     *
-     * ARGB32 is premultiplied.  For a black pixel with opacity A the
-     * premultiplied value is (A<<24)|0 — only the alpha channel is non-zero.
-     *
-     * Loop bounds: x from -1..nx (not nx+1) and y from -1..ny produce
-     * exactly (nx+2)×(ny+2) pixels, matching the surface dimensions. */
+    /* Reallocate the cached surface when the tile count or lighting mode changes.
+     * Tile mode uses a (tw × th) surface; pixel mode uses (tw*mis × th*mis). */
+    if (lm_surface == NULL || nx != lm_last_nx || ny != lm_last_ny
+            || lm_last_mode != lighting) {
+        if (lm_surface) cairo_surface_destroy(lm_surface);
+        const int sw = pixel_mode ? tw * mis : tw;
+        const int sh = pixel_mode ? th * mis : th;
+        lm_surface   = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, sw, sh);
+        lm_last_nx   = nx;
+        lm_last_ny   = ny;
+        lm_last_mode = lighting;
+    }
+
     cairo_surface_flush(lm_surface);
     uint32_t *pixels = (uint32_t *)cairo_image_surface_get_data(lm_surface);
     const int stride = cairo_image_surface_get_stride(lm_surface) / (int)sizeof(uint32_t);
 
-    for (int y = -1; y <= ny; y++) {
-        for (int x = -1; x <= nx; x++) {
-            const int cx = MIN(MAX(0, x), nx);
-            const int cy = MIN(MAX(0, y), ny);
-            const double opacity = mapcell_darkness(mx_start + cx, my_start + cy);
-            const uint32_t alpha = (uint32_t)(opacity * 255.0 + 0.5);
-            pixels[(y + 1) * stride + (x + 1)] = alpha << 24;
-        }
-    }
-    cairo_surface_mark_dirty(lm_surface);
+    if (!pixel_mode) {
+        /* Tile mode: one pixel per tile cell, Cairo upscales with NEAREST. */
+        for (int sy = 0; sy < th; sy++)
+            for (int sx = 0; sx < tw; sx++)
+                pixels[sy * stride + sx] = (uint32_t)tile_alpha[sy * tw + sx] << 24;
+        cairo_surface_mark_dirty(lm_surface);
 
-    /* Scale the light map up to tile resolution and composite over the map. */
-    cairo_scale(cr, map_image_size, map_image_size);
-    cairo_translate(cr, -1, -1);
-    cairo_set_source_surface(cr, lm_surface, 0, 0);
-    switch (use_config[CONFIG_LIGHTING]) {
-        case CFG_LT_TILE:
-            cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
-            break;
-        case CFG_LT_PIXEL:
-            cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_GOOD);
-            break;
-        case CFG_LT_PIXEL_BEST:
-            cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_BEST);
-            break;
+        cairo_scale(cr, mis, mis);
+        cairo_translate(cr, -1, -1);
+        cairo_set_source_surface(cr, lm_surface, 0, 0);
+        cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
+        cairo_paint(cr);
+    } else {
+        /* Pixel mode: expand to full pixel resolution with bilinear interpolation,
+         * then blit 1:1 with CAIRO_FILTER_NEAREST (essentially a memcpy).
+         *
+         * Previously the code used CAIRO_FILTER_GOOD (bilinear) or
+         * CAIRO_FILTER_BEST (Lanczos) to upscale the tile-resolution light map
+         * inside Cairo's software compositor — repeating the interpolation work
+         * on every compositing call.  By pre-computing the interpolated surface
+         * ourselves in a simple C loop we do equivalent (bilinear) work once and
+         * hand Cairo a ready-to-blit surface, avoiding the per-call compositor
+         * overhead and eliminating FILTER_BEST's wide Lanczos kernel entirely.
+         *
+         * Weights are integer multiples of 1/mis; the denominator (mis²) is
+         * factored out and applied once per pixel via an integer divide.
+         * fx / fy counters are maintained incrementally to avoid division inside
+         * the inner loop. */
+        const int mis_sq = mis * mis;
+        int ty0 = 0, fy = 0;
+        for (int py = 0; py < th * mis; py++) {
+            const int ty1 = MIN(ty0 + 1, th - 1);
+            const int ify = mis - fy;
+            uint32_t *row = pixels + py * stride;
+            int tx0 = 0, fx = 0;
+            for (int px = 0; px < tw * mis; px++) {
+                const int tx1 = MIN(tx0 + 1, tw - 1);
+                const int ifx = mis - fx;
+                const uint32_t a =
+                    (uint32_t)tile_alpha[ty0 * tw + tx0] * (uint32_t)(ifx * ify)
+                  + (uint32_t)tile_alpha[ty0 * tw + tx1] * (uint32_t)(fx  * ify)
+                  + (uint32_t)tile_alpha[ty1 * tw + tx0] * (uint32_t)(ifx * fy)
+                  + (uint32_t)tile_alpha[ty1 * tw + tx1] * (uint32_t)(fx  * fy);
+                row[px] = (a / (uint32_t)mis_sq) << 24;
+                if (++fx == mis) { fx = 0; tx0++; }
+            }
+            if (++fy == mis) { fy = 0; ty0++; }
+        }
+        cairo_surface_mark_dirty(lm_surface);
+
+        /* The pixel surface's top-left represents the border cell at tile offset
+         * (-1, -1) relative to the viewport.  Placing it at (-mis, -mis) in the
+         * current CTM (which already carries global_offset_x/y) aligns the
+         * darkness exactly with tile_surface. */
+        cairo_set_source_surface(cr, lm_surface, -mis, -mis);
+        cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
+        cairo_paint(cr);
     }
-    cairo_paint(cr);
 }
 
 /**
