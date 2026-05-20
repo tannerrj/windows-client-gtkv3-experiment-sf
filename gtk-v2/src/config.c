@@ -20,6 +20,9 @@
 
 #include <ctype.h>
 #include <gtk/gtk.h>
+#ifdef HAVE_GIO_GNETWORKING_H
+#include <gio/gnetworking.h>
+#endif
 
 #include "image.h"
 #include "main.h"
@@ -352,15 +355,19 @@ void config_check() {
         cs_print_string(csocket.fd, "setup sound %d", use_config[CONFIG_SOUND]);
     }
 
-#ifdef TCP_NODELAY
-#ifndef WIN32
-    // TODO: Merge with setsockopt code from client.c
-    int q = want_config[CONFIG_FASTTCP];
-
-    if (csocket.fd && setsockopt(csocket.fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1) {
-        perror("TCP_NODELAY");
-    }
+#if defined(HAVE_GIO_GNETWORKING_H) || defined(WIN32)
+    if (csocket.fd) {
+        GSocket *_sock = g_socket_connection_get_socket(csocket.fd);
+        int _fd = g_socket_get_fd(_sock);
+        int q = want_config[CONFIG_FASTTCP];
+#if defined(WIN32)
+        setsockopt((SOCKET)_fd, IPPROTO_TCP, TCP_NODELAY, (const char *)&q, sizeof(q));
+#else
+        if (setsockopt(_fd, SOL_TCP, TCP_NODELAY, &q, sizeof(q)) == -1) {
+            perror("TCP_NODELAY");
+        }
 #endif
+    }
 #endif
 
     /* Copy sanitized user settings to current settings. */
