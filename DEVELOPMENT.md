@@ -39,7 +39,7 @@ The upstream's `init_theme()` added the CSS provider once at startup and never r
 - `load_theme()` now calls `apply_theme_css()` before invoking `*_get_styles()`, so the CSS is active when colors are read.
 - Two exported helpers in `info.c` — `get_css_fg_color(class, out)` and `get_css_bg_color(class, out)` — allow any module to read a color from a named CSS class without coupling to `info.c` internals.
 - `read_config_dialog()` passes the file chooser result through `g_canonicalize_filename()` before storing it, guaranteeing `client.ini` always records an absolute path. The same applies to the UI layout file chooser. A pre-existing memory leak (when the chosen theme equalled the current theme) was also fixed.
-- `setup_config_dialog()` now calls `gtk_file_chooser_set_filename()` on both platforms so the active theme and layout files are pre-selected when the Preferences dialog opens. On Windows a fallback to `set_current_folder()` (using `CF_DATADIR_RT`) is used only when the stored path doesn't resolve.
+- `setup_config_dialog()` uses `gtk_file_chooser_set_current_folder()` on Windows (the native file dialog silently ignores `set_filename()`) and `gtk_file_chooser_set_filename()` on other platforms, controlled via `#ifdef WIN32` / `#else` blocks.
 
 Application-specific CSS classes were added to `standard.css`:
 

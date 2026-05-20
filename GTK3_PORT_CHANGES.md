@@ -713,13 +713,13 @@ reallocates `bar_colors` on every call.  `inventory_get_styles()` and
 
 #### Theme path persistence (`gtk-v2/src/config.c`)
 
-`setup_config_dialog()` now calls `gtk_file_chooser_set_filename()` on all
-platforms so the currently-active theme and UI layout files are pre-selected
-when the Preferences dialog opens.  Previously, the Windows code path only
-called `gtk_file_chooser_set_current_folder()`, leaving no file pre-selected
-and giving the user no indication of which theme was active.  A fallback to
-`set_current_folder()` (from `CF_DATADIR_RT`) is still used on Windows when the
-stored path doesn't resolve (e.g. stale `client.ini` after reinstall).
+`setup_config_dialog()` uses `gtk_file_chooser_set_current_folder()` on Windows
+and `gtk_file_chooser_set_filename()` on other platforms, split via
+`#ifdef WIN32` / `#else`.  On Windows, the native file dialog silently ignores
+`set_filename()`, so `set_current_folder()` with an absolute path built from
+`CF_DATADIR_RT` is the only reliable way to control where the dialog opens.
+On non-Windows, `set_filename()` is used so the currently-active file is
+pre-selected in the chooser.
 
 `read_config_dialog()` now passes every path returned by
 `gtk_file_chooser_get_filename()` through `g_canonicalize_filename(buf, NULL)`

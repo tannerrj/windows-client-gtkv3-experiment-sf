@@ -124,12 +124,14 @@ rely on GTK file filters to restrict what the user sees. Instead, ensure only
 valid files exist in the relevant directories (for example, do not install
 GTK2-format theme files alongside `.css` files).
 
-When setting a file chooser's initial location, always call
-`gtk_file_chooser_set_filename()` with the current absolute path so the active
-file is pre-selected. On Windows, follow this with a `get_filename()` probe; if
-it returns NULL (path doesn't resolve, e.g. stale `client.ini`), fall back to
+On Windows the native file dialog silently ignores
+`gtk_file_chooser_set_filename()`. Always use
 `gtk_file_chooser_set_current_folder()` with an absolute path built from
-`CF_DATADIR_RT`.
+`CF_DATADIR_RT` inside a `#ifdef WIN32` block, and call
+`gtk_file_chooser_set_filename()` only in the `#else` branch for non-Windows
+platforms. Do not attempt to probe with `get_filename()` as a fallback — the
+call will return NULL on Windows because `set_filename` was silently ignored,
+not because the path is stale.
 
 When reading a path back from a file chooser in `read_config_dialog()`, always
 pass the result through `g_canonicalize_filename(buf, NULL)` before storing it.
