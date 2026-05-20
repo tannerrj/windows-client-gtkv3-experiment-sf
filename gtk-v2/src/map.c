@@ -48,6 +48,13 @@ static gboolean map_scrolled  = FALSE;
 static int      map_scroll_dx = 0;
 static int      map_scroll_dy = 0;
 
+/* Cached light-map surface for draw_darkness().  Reallocated only when the
+ * number of visible tiles changes; its pixel content is overwritten each frame
+ * via direct buffer writes rather than per-pixel Cairo drawing calls. */
+static cairo_surface_t *lm_surface = NULL;
+static int              lm_last_nx = -1;
+static int              lm_last_ny = -1;
+
 /* Viewport state used by dirty-region tracking to detect when a full redraw
  * is required vs. when visible tiles are unchanged and the frame can be skipped. */
 static int    last_mx_start = G_MININT;
@@ -127,6 +134,9 @@ void map_init(GtkWidget *window_root) {
      * full redraw regardless of any stale last_* values. */
     if (tile_surface) { cairo_surface_destroy(tile_surface); tile_surface = NULL; }
     if (map_surface)  { cairo_surface_destroy(map_surface);  map_surface  = NULL; }
+    if (lm_surface)   { cairo_surface_destroy(lm_surface);   lm_surface   = NULL; }
+    lm_last_nx = -1;
+    lm_last_ny = -1;
     map_scrolled  = FALSE;
     map_scroll_dx = 0;
     map_scroll_dy = 0;
@@ -520,6 +530,11 @@ static double mapcell_darkness(int mx, int my) {
  * avoid edge artefacts), then scales it up and blits it over the map using
  * the filter selected by CONFIG_LIGHTING (nearest, good, or best quality).
  *
+ * The light-map surface (lm_surface) is cached and reallocated only when the
+ * number of visible tiles changes.  Its pixel content is written directly into
+ * the surface buffer each frame, replacing the previous per-pixel
+ * cairo_rectangle/fill loop (which issued hundreds of drawing calls per frame).
+ *
  * @param cr       Cairo context for the map drawing area.
  * @param nx       Number of tiles visible in the x direction.
  * @param ny       Number of tiles visible in the y direction.
@@ -527,36 +542,44 @@ static double mapcell_darkness(int mx, int my) {
  * @param my_start Virtual map y coordinate of the top-left tile.
  */
 static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_start) {
-    /**
-     * Create light map nx wide, ny tall. Add a border 1px around to get rid
-     * of edge effects.
-     */
-    cairo_surface_t *cst_lm = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, nx+2, ny+2);
-    cairo_t *cr_lm = cairo_create(cst_lm);
-    for (int x = -1; x <= nx+1; x++) {
-        for (int y = -1; y <= ny+1; y++) {
-            const int dx = MIN(MAX(0, x), nx);
-            const int dy = MIN(MAX(0, y), ny);
+    /* Reallocate the cached surface only when the tile count changes. */
+    if (lm_surface == NULL || nx != lm_last_nx || ny != lm_last_ny) {
+        if (lm_surface) cairo_surface_destroy(lm_surface);
+        lm_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, nx + 2, ny + 2);
+        lm_last_nx = nx;
+        lm_last_ny = ny;
+    }
 
-            // Map coordinate to get darkness information from
-            const int mx = mx_start + dx;
-            const int my = my_start + dy;
+    /* Write darkness values directly into the pixel buffer.
+     *
+     * The surface is (nx+2) × (ny+2): one pixel per visible tile plus a
+     * one-pixel border on all sides (sampled from the edge tiles) to prevent
+     * interpolation artefacts when the light map is scaled up.
+     *
+     * ARGB32 is premultiplied.  For a black pixel with opacity A the
+     * premultiplied value is (A<<24)|0 — only the alpha channel is non-zero.
+     *
+     * Loop bounds: x from -1..nx (not nx+1) and y from -1..ny produce
+     * exactly (nx+2)×(ny+2) pixels, matching the surface dimensions. */
+    cairo_surface_flush(lm_surface);
+    uint32_t *pixels = (uint32_t *)cairo_image_surface_get_data(lm_surface);
+    const int stride = cairo_image_surface_get_stride(lm_surface) / (int)sizeof(uint32_t);
 
-            // Destination coordinates on light map
-            const int ax = x + 1;
-            const int ay = y + 1;
-
-            cairo_rectangle(cr_lm, ax, ay, 1, 1);
-            cairo_set_source_rgba(cr_lm, 0, 0, 0, mapcell_darkness(mx, my));
-            cairo_fill(cr_lm);
+    for (int y = -1; y <= ny; y++) {
+        for (int x = -1; x <= nx; x++) {
+            const int cx = MIN(MAX(0, x), nx);
+            const int cy = MIN(MAX(0, y), ny);
+            const double opacity = mapcell_darkness(mx_start + cx, my_start + cy);
+            const uint32_t alpha = (uint32_t)(opacity * 255.0 + 0.5);
+            pixels[(y + 1) * stride + (x + 1)] = alpha << 24;
         }
     }
-    cairo_destroy(cr_lm);
+    cairo_surface_mark_dirty(lm_surface);
 
-    // Scale up light map and draw to map.
+    /* Scale the light map up to tile resolution and composite over the map. */
     cairo_scale(cr, map_image_size, map_image_size);
     cairo_translate(cr, -1, -1);
-    cairo_set_source_surface(cr, cst_lm, 0, 0);
+    cairo_set_source_surface(cr, lm_surface, 0, 0);
     switch (use_config[CONFIG_LIGHTING]) {
         case CFG_LT_TILE:
             cairo_pattern_set_filter(cairo_get_source(cr), CAIRO_FILTER_NEAREST);
@@ -569,7 +592,6 @@ static void draw_darkness(cairo_t *cr, int nx, int ny, int mx_start, int my_star
             break;
     }
     cairo_paint(cr);
-    cairo_surface_destroy(cst_lm);
 }
 
 /**
