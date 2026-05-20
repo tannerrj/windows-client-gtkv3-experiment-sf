@@ -138,6 +138,47 @@ endif()
 
 ---
 
+## Performance Optimisations (fork)
+
+These changes were made on the `gtk3-client-performance-improvements` branch. All are confined to `gtk-v2/src/map.c` unless noted.
+
+### Dirty-Region Tracking in `gtk_map_redraw()`
+
+The original renderer ran a full tile redraw every call regardless of whether any tile data had changed. The fork adds per-frame dirty-cell scanning (`need_update` / `need_resmooth` flags on `MapCell`) and skips the tile-render phase entirely when the viewport is stable and no cells are dirty. Only the compose phase runs for pure animation frames (sub-tile smooth-scroll offset draining to zero).
+
+### `display_mapscroll` Blit Optimisation
+
+`display_mapscroll(dx, dy)` previously always returned 0, forcing a full tile redraw on every map scroll. The fork implements the blit path:
+
+- A persistent `tile_surface` (ARGB32) holds the tile+label layer. On scroll, its contents are shifted by `dx * map_image_size` pixels in place.
+- `global_offset_x += pixel_dx` keeps the composition phase visually aligned (cancels the blit shift until `want_offset_x` drains).
+- `want_offset_x -= dx` removes the consumed prediction so smooth-scroll animation settles correctly.
+- Only the newly exposed strip at the scroll edge is re-rendered; the rest of the tile surface is reused.
+- Pixel-interpolated lighting modes (`CFG_LT_PIXEL`, `CFG_LT_PIXEL_BEST`) and diagonal scrolls (`dx != 0 && dy != 0`) fall back to 0 (full redraw) as partial updates are incompatible with those modes.
+
+### Darkness Overlay — Cached Surface and Direct Pixel Writes
+
+`draw_darkness()` previously allocated a new `cairo_surface_t` on every frame and painted each darkness cell with a `cairo_rectangle` / `cairo_fill` pair. The fork replaces this with:
+
+- A module-level `lm_surface` (ARGB32) reallocated only when the tile-count (`nx`, `ny`) changes.
+- Direct buffer writes via `cairo_image_surface_get_data()` with a single `(uint32_t)alpha << 24` per cell, eliminating all per-pixel Cairo draw calls.
+
+### Software-Renderer Overhead Reduction (RGB24 + OPERATOR_SOURCE)
+
+The GDK Win32 backend has no GPU acceleration — all Cairo rendering uses a software rasteriser. Three changes reduce unnecessary per-pixel arithmetic:
+
+| Location | Change | Reason |
+|---|---|---|
+| `map_surface` allocation | `CAIRO_FORMAT_ARGB32` → `CAIRO_FORMAT_RGB24` | Composed output is always opaque; RGB24 skips alpha premultiplication in the final blit |
+| Phase-2 black fill in `gtk_map_redraw()` | `CAIRO_OPERATOR_SOURCE` instead of default `OVER` | Equivalent result for solid opaque fill; avoids alpha-blend arithmetic |
+| `map_expose_event()` screen blit | `CAIRO_OPERATOR_SOURCE` instead of default `OVER` | `map_surface` is RGB24 (opaque); SOURCE is correct and faster |
+
+`OVER` is restored before blitting `tile_surface` so transparent sprite pixels blend correctly. These changes benefit all platforms; no WIN32 guards are needed.
+
+**Note:** True GPU acceleration would require porting the map renderer to `GtkGLArea` / OpenGL. That is a large architectural change not yet attempted.
+
+---
+
 ## New Features
 
 | Feature | Location | Notes |
