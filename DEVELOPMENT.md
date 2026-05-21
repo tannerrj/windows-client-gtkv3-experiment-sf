@@ -140,13 +140,15 @@ endif()
 
 ## Performance Optimisations (fork)
 
-These changes were made on the `gtk3-client-performance-improvements` branch. All are confined to `gtk-v2/src/map.c` unless noted.
+These changes were made on the `gtk3-client-performance-improvements` branch. Changes span `gtk-v2/src/map.c`, `gtk-v2/src/inventory.c`, `common/mapdata.c`, `gtk-v2/src/main.c`, `gtk-v2/src/image.c`, and `common/client.c`.
 
-### Dirty-Region Tracking in `gtk_map_redraw()`
+### Map Renderer
+
+#### Dirty-Region Tracking in `gtk_map_redraw()`
 
 The original renderer ran a full tile redraw every call regardless of whether any tile data had changed. The fork adds per-frame dirty-cell scanning (`need_update` / `need_resmooth` flags on `MapCell`) and skips the tile-render phase entirely when the viewport is stable and no cells are dirty. Only the compose phase runs for pure animation frames (sub-tile smooth-scroll offset draining to zero).
 
-### `display_mapscroll` Blit Optimisation
+#### `display_mapscroll` Blit Optimisation
 
 `display_mapscroll(dx, dy)` previously always returned 0, forcing a full tile redraw on every map scroll. The fork implements the blit path:
 
@@ -156,14 +158,14 @@ The original renderer ran a full tile redraw every call regardless of whether an
 - Only the newly exposed strip at the scroll edge is re-rendered; the rest of the tile surface is reused.
 - Pixel-interpolated lighting modes (`CFG_LT_PIXEL`, `CFG_LT_PIXEL_BEST`) and diagonal scrolls (`dx != 0 && dy != 0`) fall back to 0 (full redraw) as partial updates are incompatible with those modes.
 
-### Darkness Overlay — Cached Surface and Direct Pixel Writes
+#### Darkness Overlay — Cached Surface and Direct Pixel Writes
 
 `draw_darkness()` previously allocated a new `cairo_surface_t` on every frame and painted each darkness cell with a `cairo_rectangle` / `cairo_fill` pair. The fork replaces this with:
 
-- A module-level `lm_surface` (ARGB32) reallocated only when the tile-count (`nx`, `ny`) changes.
+- A module-level `lm_surface` (ARGB32) reallocated only when the tile-count (`nx`, `ny`) or lighting mode changes.
 - Direct buffer writes via `cairo_image_surface_get_data()` with a single `(uint32_t)alpha << 24` per cell, eliminating all per-pixel Cairo draw calls.
 
-### Software-Renderer Overhead Reduction (RGB24 + OPERATOR_SOURCE)
+#### Software-Renderer Overhead Reduction (RGB24 + OPERATOR_SOURCE)
 
 The GDK Win32 backend has no GPU acceleration — all Cairo rendering uses a software rasteriser. Three changes reduce unnecessary per-pixel arithmetic:
 
@@ -176,6 +178,90 @@ The GDK Win32 backend has no GPU acceleration — all Cairo rendering uses a sof
 `OVER` is restored before blitting `tile_surface` so transparent sprite pixels blend correctly. These changes benefit all platforms; no WIN32 guards are needed.
 
 **Note:** True GPU acceleration would require porting the map renderer to `GtkGLArea` / OpenGL. That is a large architectural change not yet attempted.
+
+#### Darkness Upscale — Manual Bilinear Replaces `CAIRO_FILTER_GOOD/BEST`
+
+Pixel lighting mode (`CFG_LT_PIXEL`, `CFG_LT_PIXEL_BEST`) previously stored a tile-resolution light map in `lm_surface` and upscaled it to full pixel resolution using `CAIRO_FILTER_GOOD` or `CAIRO_FILTER_BEST`. Those filters invoke Cairo's internal Lanczos/bilinear compositor, which has significant per-pixel overhead on the software rasteriser.
+
+The fork pre-expands the light map to full pixel resolution using manual bilinear interpolation before writing to `lm_surface`. The resulting surface is blitted 1:1 with `CAIRO_FILTER_NEAREST` (no upscaling needed). The inner bilinear loop uses integer `fx`/`fy` counters and a single integer multiply-accumulate, with no floating-point division.
+
+Tile lighting mode is unaffected — it still uses one pixel per tile with `CAIRO_FILTER_NEAREST`.
+
+#### Smooth-Tile Inner Loop — Direct Pixel OVER Blend
+
+`draw_smooth_pixmap()` is called once per smooth sub-tile during the layer rendering pass. Previously it used `cairo_set_source_surface` + `cairo_rectangle` + `cairo_fill` to copy each sub-tile into `tile_surface`, invoking the full Cairo compositor for every call.
+
+In full-redraw mode (non-scroll frames), `tile_surface`'s raw pixel buffer is exposed via `cairo_image_surface_get_data()` before the layer loop begins. `draw_smooth_pixmap()` blends directly into that buffer using a two-channel premultiplied ARGB32 OVER formula:
+
+```c
+const uint32_t inv = 256 - sa;
+const uint32_t rb  = (sp & 0x00FF00FF)
+                   + (((dp & 0x00FF00FF) * inv) >> 8 & 0x00FF00FF);
+const uint32_t ag  = ((sp >> 8) & 0x00FF00FF)
+                   + ((((dp >> 8) & 0x00FF00FF) * inv) >> 8 & 0x00FF00FF);
+*drow++ = (ag << 8) | rb;
+```
+
+This processes two channels in parallel with one mask and shift each, avoiding per-pixel Cairo compositor overhead. The Cairo path is preserved as a fallback for partial-update (scroll blit) frames, where Cairo's clip region must be respected.
+
+### Inventory Renderer
+
+#### Differential Update — No Full Rebuild per Change
+
+`draw_look_list()` and `draw_inv_list()` previously called `gtk_tree_store_clear()` then rebuilt the entire `GtkTreeStore` from scratch on every server update. For large inventories this is O(n) GtkTreeStore operations per update even when only one item changed.
+
+The fork adds `try_diff_update_look()` and `try_diff_update_inv()` helpers that walk the store and the item list in parallel:
+
+- If the item at a given position matches the store row, the row is updated in-place via `gtk_tree_store_set()`.
+- New items at the end are appended.
+- Stale rows at the end are removed with `gtk_tree_store_remove()`.
+- If the item order has changed (different `item*` at the same position), the helper returns `FALSE` and the caller falls back to a full rebuild.
+
+Full rebuilds are also forced when a container is open (child rows would need hierarchical handling). In typical play only the last few items change per tick, so the differential path avoids most store operations.
+
+#### Icon-View Event Mask — `GDK_ALL_EVENTS_MASK` Removed
+
+`draw_inv_table()` previously called `gtk_widget_add_events(cell, GDK_ALL_EVENTS_MASK)` on every cell on every redraw cycle, regardless of whether the cell was newly created. `GDK_ALL_EVENTS_MASK` subscribes to every input event (pointer motion, scroll, crossing, key, focus, …) and is far broader than needed.
+
+The `add_events` call is now in the one-time cell-creation block and uses only `GDK_BUTTON_PRESS_MASK`. Tooltip-related masks (`GDK_POINTER_MOTION_MASK`, `GDK_LEAVE_NOTIFY_MASK`) are added automatically by GTK when `gtk_widget_set_tooltip_text` sets the `has-tooltip` property, so they do not need to be specified manually.
+
+#### Shared `GtkCssProvider` for Applied-Item Highlight
+
+`draw_inv_table()` previously called `gtk_css_provider_new()`, `gtk_css_provider_load_from_data()`, and `g_object_unref()` on every cell during every redraw to apply the grey background for applied items. With a full inventory redraw at every tick this allocated and freed a provider object per visible cell.
+
+A module-level `static GtkCssProvider *applied_css_provider` is now initialized once on first use. Per-cell state (`was_applied`) is tracked via `g_object_set_data(G_OBJECT(cell), "inv-applied", ...)` using `GINT_TO_POINTER(1)` as a boolean sentinel. The provider is added or removed from the cell's style context only when the applied state actually changes, skipping the add/remove entirely for the common case.
+
+### Main Loop and Animation
+
+#### Redraw Idle Guard — `g_idle_add` Accumulation Prevented
+
+`self_tick()` (the 8 Hz animation timer) previously called `g_idle_add(redraw, NULL)` unconditionally every tick. If GTK was busy and the previous redraw idle had not yet run, a second (and third, …) `redraw` callback was queued on top of it, causing multiple `draw_map()` + `draw_lists()` calls per frame.
+
+A `static guint redraw_idle_id` is set by `g_idle_add` and cleared to 0 at the start of the `redraw` callback. `self_tick()` only calls `g_idle_add` when `redraw_idle_id == 0`, guaranteeing at most one pending redraw in the idle queue.
+
+#### `mapdata_animation()` — Bounded SYNC Animation Scan
+
+`mapdata_animation()` iterated all 2000 `MAXANIM` slots in the `animations[]` array every tick to advance synchronized animation phases, even though most slots are empty (no SYNC speed assigned). In practice only a small fraction of slots are used by any given server.
+
+A `static int anim_sync_max` high-water mark (one past the highest `animations[]` index that has ever received a SYNC speed in `mapdata_set_anim_layer`) replaces `MAXANIM` as the loop bound. The scan is proportional to the number of distinct synchronized animation IDs the server has sent, which is typically far smaller than 2000.
+
+### Startup and Connection
+
+#### `image_update_download_status` — Spin-Loop Replaced
+
+`image_update_download_status()` drove the image-download progress bar with `while(gtk_events_pending()) { gtk_main_iteration(); }` — draining the entire GTK event queue on every progress update. If animation timers or incoming network data kept producing events during the download, this loop would spin indefinitely, stalling the download for each call.
+
+Replaced with a single `g_main_context_iteration(NULL, FALSE)`, which dispatches at most one pending event per call (sufficient to process the queued progress-bar repaint) and returns immediately whether or not any events were pending.
+
+#### TCP_NODELAY Enabled on Windows
+
+The `CONFIG_FASTTCP` ("Fast TCP") preference was blocked by `#ifndef WIN32` guards in both `common/client.c` and `gtk-v2/src/config.c`, so the setting had no effect on Windows. Windows Winsock supports `TCP_NODELAY` via `setsockopt` with `IPPROTO_TCP` as the level and `(const char*)` as the optval type.
+
+`client.c` now uses `#if defined(HAVE_GIO_GNETWORKING_H)` / `#elif defined(WIN32)` to dispatch to the correct ABI. `config.c` received the same split and also fixed a pre-existing bug where `csocket.fd` (a `GSocketConnection*`) was passed directly to `setsockopt` instead of extracting the raw fd via `g_socket_connection_get_socket()` + `g_socket_get_fd()`. A missing `#include <gio/gnetworking.h>` (needed for `TCP_NODELAY` on POSIX) was also added to `config.c`.
+
+#### `my_log_handler` — 1-Second Sleep Removed
+
+`my_log_handler` is a debugging aid (a GLib log handler meant to be set as a breakpoint target when chasing GTK assertion failures). Its body contained `g_usleep(1 * 1e6)` — a 1-second freeze — which would fire for every GTK log message if the handler were ever registered via `g_log_set_handler`. The sleep is removed; the function body is now a no-op so it remains a valid breakpoint target.
 
 ---
 

@@ -108,6 +108,40 @@ empty `#else` block without a comment.
 #endif
 ```
 
+### Cross-platform `setsockopt`
+
+POSIX networking constants (`TCP_NODELAY`, `SOL_TCP`, `IPPROTO_TCP`) come from
+`<gio/gnetworking.h>`, which is not available on Windows. On Windows they are
+defined in `<winsock2.h>` (already included via `client.h`). Use the
+`HAVE_GIO_GNETWORKING_H` / `WIN32` split rather than a single `#ifndef WIN32`:
+
+```c
+#ifdef HAVE_GIO_GNETWORKING_H
+#include <gio/gnetworking.h>
+#endif
+
+// At the call site:
+#if defined(HAVE_GIO_GNETWORKING_H)
+    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1)
+        perror("TCP_NODELAY");
+#elif defined(WIN32)
+    /* Winsock setsockopt requires (const char*) for optval. */
+    setsockopt((SOCKET)fd, IPPROTO_TCP, TCP_NODELAY, (const char *)&i, sizeof(i));
+#endif
+```
+
+To get the raw socket fd from a `GSocketConnection*`, use
+`g_socket_connection_get_socket()` + `g_socket_get_fd()`.  Never pass a
+`GSocketConnection*` directly to `setsockopt`.
+
+### GTK event loop re-entrancy
+
+Never drain the GTK event queue with `while(gtk_events_pending()) { gtk_main_iteration(); }` from within network-processing code or any callback that runs
+outside the main GTK loop.  If the queue never empties (animation timers,
+network events) this loop spins indefinitely.  Use a single
+`g_main_context_iteration(NULL, FALSE)` to process at most one pending event
+and return immediately.
+
 ### CF_DATADIR_RT
 
 `CF_DATADIR` is a compile-time constant that expands to a relative path

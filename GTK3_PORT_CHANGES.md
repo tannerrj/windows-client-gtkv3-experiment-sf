@@ -512,23 +512,45 @@ The CSS selector `progressbar progress` targets the fill trough of a
 
 ### Inventory icon view (`gtk-v2/src/inventory.c`)
 
-The icon view in the inventory uses a `GtkEventBox` per item.  Applied items
-need a grey background:
+The icon view uses a `GtkDrawingArea` per item grid cell.  Applied items need
+a grey background.  A module-level singleton provider is initialised once:
 
 ```c
-GtkCssProvider *provider = gtk_css_provider_new();
-gtk_css_provider_load_from_data(provider,
-    "* { background-color: rgba(194,194,194,1.0); }", -1, NULL);
-gtk_style_context_add_provider(gtk_widget_get_style_context(cell),
-    GTK_STYLE_PROVIDER(provider),
-    GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-g_object_set_data_full(G_OBJECT(cell), "inv-color-provider",
-    provider, g_object_unref);
+static GtkCssProvider *applied_css_provider = NULL;
+
+// Lazy init at first call to draw_inv_table():
+if (applied_css_provider == NULL) {
+    applied_css_provider = gtk_css_provider_new();
+    snprintf(buf, sizeof(buf),
+             "* { background-color: rgba(%d,%d,%d,%.3f); }",
+             (int)(applied_color.red   * 255),
+             (int)(applied_color.green * 255),
+             (int)(applied_color.blue  * 255),
+             applied_color.alpha);
+    gtk_css_provider_load_from_data(applied_css_provider, buf, -1, NULL);
+}
 ```
 
-`g_object_set_data_full` with `g_object_unref` as the destructor ensures the
-provider is released when the cell widget is destroyed or when a new provider
-replaces it, preventing memory leaks in the repeated calls to `draw_icon_view`.
+The provider is added or removed from each cell's `GtkStyleContext` only when
+that cell's `applied` state actually changes, tracked via a boolean sentinel
+stored in `g_object_set_data`:
+
+```c
+gboolean was_applied = GPOINTER_TO_INT(
+    g_object_get_data(G_OBJECT(cell), "inv-applied"));
+if (was_applied && !tmp->applied) {
+    gtk_style_context_remove_provider(ctx,
+            GTK_STYLE_PROVIDER(applied_css_provider));
+    g_object_set_data(G_OBJECT(cell), "inv-applied", NULL);
+} else if (!was_applied && tmp->applied) {
+    gtk_style_context_add_provider(ctx,
+            GTK_STYLE_PROVIDER(applied_css_provider),
+            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_set_data(G_OBJECT(cell), "inv-applied", GINT_TO_POINTER(1));
+}
+```
+
+This avoids allocating and freeing a `GtkCssProvider` on every redraw cycle.
 
 ---
 
@@ -909,16 +931,19 @@ sound + metaserver build.  Key naming note: the curl package in MSYS2/UCRT64 is
 | File | Change category |
 |------|----------------|
 | `CMakeLists.txt` | gtk+-2.0 → gtk+-3.0; config.h output path; `HAVE_CAPSICUM` detection |
-| `config.h.in` | `HAVE_CAPSICUM` cmakedefine |
-| `gtk-v2/src/config.c` | CSS provider lifecycle; `apply_theme_css()`; `load_theme()` fix; theme/UI path canonicalization via `g_canonicalize_filename()`; file chooser pre-selection fix; memory leak fix |
+| `config.h.in` | `HAVE_CAPSICUM` cmakedefine; `HAVE_SOUND` cmakedefine |
+| `common/client.c` | TCP_NODELAY enabled on Windows via `#elif defined(WIN32)` Winsock path |
+| `common/mapdata.c` | `anim_sync_max` high-water mark; bounds `mapdata_animation()` SYNC scan |
+| `gtk-v2/src/config.c` | CSS provider lifecycle; `apply_theme_css()`; `load_theme()` fix; theme/UI path canonicalization; file chooser pre-selection fix; memory leak fix; TCP_NODELAY live-update fix (correct fd extraction + `#include <gio/gnetworking.h>`) |
 | `gtk-v2/src/gtk2proto.h` | Updated signatures; new `get_css_fg/bg_color` declarations; `map_pre_sandbox_init` |
+| `gtk-v2/src/image.c` | `gtk_events_pending` spin-loop → `g_main_context_iteration(NULL, FALSE)` |
 | `gtk-v2/src/info.c` | `GtkStyle` → `GtkStyleContext`; CSS color helpers |
-| `gtk-v2/src/inventory.c` | `GdkColor` → `GdkRGBA`; GtkTable → GtkGrid; fg+bg color model; CSS |
+| `gtk-v2/src/inventory.c` | `GdkColor` → `GdkRGBA`; GtkTable → GtkGrid; fg+bg color model; CSS; differential store update; `GDK_BUTTON_PRESS_MASK`; shared applied-item `GtkCssProvider` |
 | `gtk-v2/src/keys.c` | GTK_STOCK_YES/NO → mnemonic text labels |
 | `gtk-v2/src/magicmap.c` | draw signal; `gdk_cairo_create` removal; `GdkRGBA` colors |
-| `gtk-v2/src/main.c` | `GdkRGBA` init; `expose_event` → `draw`; Capsicum sandbox support |
+| `gtk-v2/src/main.c` | `GdkRGBA` init; `expose_event` → `draw`; Capsicum sandbox support; `redraw_idle_id` guard; `my_log_handler` sleep removed |
 | `gtk-v2/src/main.h` | `GdkColor` → `GdkRGBA` for `root_color` |
-| `gtk-v2/src/map.c` | Persistent `cairo_surface_t`; draw signal blitting; `map_pre_sandbox_init`; static label font |
+| `gtk-v2/src/map.c` | Persistent `cairo_surface_t`; draw signal blitting; `map_pre_sandbox_init`; static label font; dirty-region tracking; `display_mapscroll` blit; cached `lm_surface`; RGB24 surface; `OPERATOR_SOURCE`; manual bilinear darkness upscale; direct pixel OVER blend for smooth tiles |
 | `gtk-v2/src/spells.c` | `GdkColor` → `GdkRGBA`; `GDK_TYPE_RGBA`; fg+bg model; CSS |
 | `gtk-v2/src/stats.c` | `GdkColor` → `GdkRGBA`; GtkTable → GtkGrid; CSS bar colors |
 | `gtk-v2/themes/standard.css` | cf-* application color classes; invalid color name fixes |
@@ -938,4 +963,3 @@ sound + metaserver build.  Key naming note: the curl package in MSYS2/UCRT64 is
 | `.github/workflows/build.yml` | GitHub Actions CI: three jobs (Linux full, Linux minimal, Windows MSYS2/UCRT64); `libglib2.0-dev-bin` Noble fix; Windows artifact |
 | `gtk-v2/src/CMakeLists.txt` | `cfsndserv.c` moved to `if(SOUND) target_sources(...)` block |
 | `gtk-v2/src/sound.c` | `#ifndef HAVE_SOUND` no-op stubs for `cf_snd_*` functions |
-| `config.h.in` | `#cmakedefine HAVE_SOUND` added |
