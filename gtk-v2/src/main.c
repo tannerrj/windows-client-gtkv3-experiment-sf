@@ -388,7 +388,9 @@ void error_dialog(char *error, char *message) {
 
 void my_log_handler(const gchar *log_domain, GLogLevelFlags log_level,
                     const gchar *message, gpointer user_data) {
-    g_usleep(1 * 1e6);
+    (void)log_domain; (void)log_level; (void)message; (void)user_data;
+    /* Breakpoint target for debugging GTK assertion failures.
+     * Register with g_log_set_handler() temporarily when needed. */
 }
 
 /**
