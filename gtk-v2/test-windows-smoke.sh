@@ -109,6 +109,14 @@ fi
 
 echo ""
 
+# 13. sounds.conf present in deploy
+echo "--- sounds.conf present ---"
+if [ -f "$DEPLOY/share/crossfire-client/sounds/sounds.conf" ]; then
+    ok "sounds.conf present in deploy"
+else
+    fail "sounds.conf missing from deploy - sound will not work"
+fi
+
 # 11. client.ico present in deploy
 echo "--- client.ico present ---"
 if [ -f "$DEPLOY/client.ico" ]; then
