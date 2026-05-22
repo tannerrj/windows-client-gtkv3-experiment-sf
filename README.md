@@ -40,6 +40,42 @@ and the origin of the code base from SourceForge.
 
 ---
 
+## Why GTK3? Moving away from GTK2
+
+### For players
+
+If you have played Crossfire before and are wondering why the client looks
+slightly different, or why a new installer is needed: the short answer is that
+the old graphical toolkit the client was built on — GTK2 — is no longer
+maintained and is quietly disappearing from modern operating systems. GTK2 was
+released in 2002 and its final version shipped in 2011. Linux distributions are
+dropping it, and on Windows it was never easy to install in the first place.
+The move to GTK3 means the Crossfire client can continue to run on current
+systems without depending on aging, unsupported libraries. For Windows players
+in particular, this fork packages everything the client needs into a single
+installer, so there is nothing extra to set up.
+
+### For developers
+
+GTK2 reached end-of-life with version 2.24 (2011) and has received no upstream
+development since. GTK3, first released in 2011, completed the transition to a
+modern rendering pipeline and has been the supported stable series ever since
+(with GTK 3.24 as the current long-term release). Several GTK2 APIs were
+deprecated across GTK 3.0–3.22 and formally removed in GTK 4; compiling the
+old client against a current GTK3 installation produces hundreds of deprecation
+warnings and in some cases link errors. The port replaces the most impactful
+deprecated APIs — `GdkColor`, `GtkTable`, `GtkHSeparator`, `GTK_STOCK_*` items,
+`gdk_cairo_create`, `gtk_widget_modify_base/bg`, and the RC-file theme system —
+with their GTK3 equivalents (`GdkRGBA`, `GtkGrid`, `GtkSeparator`, mnemonic
+labels, the `draw` signal with a persistent `cairo_surface_t`, `GtkCssProvider`,
+and CSS-based theming). The result compiles cleanly against GTK 3.24 with
+`-Wno-deprecated-declarations`, and passes a strict build with
+`-DGTK_DISABLE_DEPRECATED` for the subset of APIs that have clean replacements.
+A full description of every changed API and the rationale behind each decision
+is in `GTK3_PORT_CHANGES.md`.
+
+---
+
 ## What was fixed
 
 The upstream GTK3 port compiled and ran on Linux but had several issues that
@@ -104,10 +140,41 @@ commit log.
 
 ---
 
+## Performance improvements
+
+The `gtk3-client-performance-improvements` branch adds a series of rendering and
+loop optimisations that reduce CPU usage during normal play. For full technical
+details see `DEVELOPMENT.md`.
+
+**Map renderer**
+
+- Dirty-region tracking skips the tile-render phase entirely on stable frames
+- `display_mapscroll` blit reuses the tile surface on scroll instead of full redraws
+- Darkness overlay uses a cached surface and direct pixel writes instead of Cairo `fill` calls
+- RGB24 map surface and `OPERATOR_SOURCE` operator reduce software-rasteriser overhead
+- Pixel lighting mode pre-expands the light map with manual bilinear interpolation (avoids `CAIRO_FILTER_GOOD/BEST` upscale overhead)
+- Smooth sub-tile inner loop blends directly into the pixel buffer (avoids per-sub-tile Cairo compositor calls)
+
+**Inventory renderer**
+
+- Differential store update replaces full `GtkTreeStore` rebuild on every server tick
+- `GDK_BUTTON_PRESS_MASK` replaces `GDK_ALL_EVENTS_MASK` on icon-view cells
+- Shared `GtkCssProvider` for applied-item highlight (was allocated and freed per cell per frame)
+
+**Main loop and startup**
+
+- Redraw idle guard prevents `g_idle_add` accumulation when GTK is busy
+- `my_log_handler` 1-second blocking sleep removed
+- `image_update_download_status` spin-loop replaced with a single `g_main_context_iteration` call
+- `mapdata_animation` SYNC scan bounded by a high-water mark instead of the full 2000-slot array
+- TCP_NODELAY (`CONFIG_FASTTCP`) enabled on Windows via the Winsock2 path
+
+---
+
 ## Platform compatibility
 
-All Windows-specific changes are guarded by `#ifdef WIN32` or `if(WIN32)` CMake
-conditions. The Linux and macOS build paths are unchanged. The GitHub Actions CI
+All Windows-specific changes are guarded by `#ifdef _WIN32` (C source) or
+`if(WIN32)` (CMake) conditions. The Linux and macOS build paths are unchanged. The GitHub Actions CI
 workflow builds the client in three jobs on every push or pull request to the
 `gtk3` and `master` branches — two Linux configurations and one Windows build —
 and confirms that none of the platform-specific changes break any other target.
