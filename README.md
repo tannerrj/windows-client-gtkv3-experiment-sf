@@ -112,6 +112,20 @@ commit log.
   present in the bundled GTK runtime, and bundling it caused a double-
   registration crash.
 
+- **Spurious red error on first launch: faceset not found** — On every first
+  launch (before any preferences are saved) the client printed `"Unable to find
+  match for faceset  on the server"` in red. The client was treating an empty
+  "no preference" value as a faceset name to search for and reporting the
+  predictable failure as an error. The message is now suppressed when no
+  faceset preference has been configured.
+
+- **Spurious red error on first launch: Message Control settings not loaded** —
+  On every first launch the client printed a red error naming a settings file
+  (`config_dir/msgs`) that does not exist until the user saves Message Control
+  preferences. A missing file is now treated as a silent first-run condition
+  rather than an error; only a genuine open failure (permissions, I/O) still
+  shows the message.
+
 ---
 
 ## What was added

@@ -265,6 +265,47 @@ The `CONFIG_FASTTCP` ("Fast TCP") preference was blocked by `#ifndef WIN32` guar
 
 ---
 
+## Bug Fixes
+
+### Spurious "Unable to find match for faceset" on First Launch (`common/image.c`)
+
+When no faceset preference has been saved, `load_config()` in `config.c` sets
+`face_info.want_faceset` to `""` (empty string) as a "no preference" sentinel.
+The faceset name-matching block in `image.c` tested only
+`want_faceset != NULL && atoi(want_faceset) == 0`, which is satisfied by `""`:
+the pointer is non-NULL and `atoi("") == 0`. The loop searched every faceset
+slot for a match with an empty string, found none, and printed a red
+`MSG_TYPE_CLIENT_CONFIG` message:
+
+```
+Unable to find match for faceset  on the server
+```
+
+(Note the double space — the empty `want_faceset` value is interpolated
+directly into the format string.)
+
+Fix: added `face_info.want_faceset[0] != '\0'` to the guard. An empty string
+is now treated identically to NULL — the block is skipped and the server's
+default faceset is used, which is the correct behaviour when the user has
+expressed no preference.
+
+### Spurious "Message Control settings not loaded" on First Launch (`gtk-v2/src/info.c`)
+
+`msgctrl_init()` calls `load_msgctrl_configuration()` at startup to restore
+saved Message Control settings from `config_dir/msgs`. On a fresh install the
+file has never been created; `fopen` returns NULL with `errno == ENOENT`. The
+original code treated this identically to any other `fopen` failure — a
+permissions error, a disk error — and printed a red `MSG_TYPE_CLIENT_ERROR`
+message naming the full file path.
+
+Fix: after `fopen` fails, `errno` is checked. If `errno == ENOENT` the
+function returns silently, leaving the defaults set by the preceding
+`default_msgctrl_configuration()` call in place. Any other `errno` value
+(e.g. `EACCES`) still shows the red error, since that indicates a real problem.
+`#include <errno.h>` was added to `info.c`.
+
+---
+
 ## New Features
 
 | Feature | Location | Notes |

@@ -36,6 +36,13 @@ based on the gtk3-client-performance-improvements branch.
 - GTK2-format theme files explicitly removed from deploy after cmake install
 - Deploy integrity verified by 13-check smoke test (client.ico, sounds.conf, loaders, schemas)
 
+**First-run fixes**
+
+- Spurious red error "Unable to find match for faceset on the server" suppressed
+  on first launch when no faceset preference has been saved (common/image.c)
+- Spurious red error "Message Control settings not loaded" suppressed on first
+  launch when the msgs settings file has not yet been created (gtk-v2/src/info.c)
+
 **GTK3 Port**
 
 - Full GTK2 to GTK3 port: GdkColor, GtkTable, GtkHSeparator, stock items,

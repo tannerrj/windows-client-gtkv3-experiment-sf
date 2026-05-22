@@ -134,6 +134,27 @@ lookups are denied afterwards.
 
 ---
 
+## First-Run Bug Fixes
+
+Two red error messages that appeared on every first launch were suppressed.
+Both were caused by the client treating a missing file — expected on a clean
+install — as a genuine error.
+
+- **Faceset not found** (`common/image.c`) — When no graphics style (faceset)
+  preference has been saved, the client stores an empty string as a sentinel.
+  The faceset-matching code interpreted that empty string as a search target,
+  found no match, and printed `"Unable to find match for faceset  on the
+  server"` in red. Fix: skip the search entirely when the preference is empty.
+
+- **Message Control settings not loaded** (`gtk-v2/src/info.c`) — At startup
+  the client tries to read saved Message Control settings from
+  `config_dir/msgs`. On a fresh install the file has never been created;
+  the client printed a red error naming the full file path. Fix: check `errno`
+  after the open fails — `ENOENT` (file not found) is now a silent return;
+  other errors (permissions, I/O) still show the red message.
+
+---
+
 ## Developer Tooling and Documentation
 
 - **`AGENTS.md`** — contributor and AI agent guide: source tree layout, build
