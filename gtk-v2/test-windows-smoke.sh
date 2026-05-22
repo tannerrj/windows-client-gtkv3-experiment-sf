@@ -108,5 +108,21 @@ else
 fi
 
 echo ""
+
+# 11. client.ico present in deploy
+echo "--- client.ico present ---"
+if [ -f "$DEPLOY/client.ico" ]; then
+    ok "client.ico present in deploy root"
+else
+    fail "client.ico missing from deploy - icon will not appear in installer"
+fi
+
+# 12. No GTK2 theme files in deploy
+echo "--- No GTK2 theme files ---"
+if ls "$DEPLOY/share/crossfire-client/themes/Black" "$DEPLOY/share/crossfire-client/themes/Standard" 2>/dev/null | grep -q .; then
+    fail "GTK2 theme files present in deploy - will appear in theme chooser and break theming"
+else
+    ok "No GTK2 theme files in deploy themes directory"
+fi
 echo "=== Results: $PASS passed, $FAIL failed ==="
 [ "$FAIL" -eq 0 ]
