@@ -307,7 +307,7 @@ void client_connect(const char hostname[static 1]) {
     int i = 1, fd = g_socket_get_fd(socket);
     if (use_config[CONFIG_FASTTCP]) {
 #if defined(HAVE_GIO_GNETWORKING_H)
-        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1) {
+        if (setsockopt(fd, SOL_TCP, TCP_NODELAY, (const char *)&i, sizeof(i)) == -1) {
             perror("TCP_NODELAY");
         }
 #elif defined(WIN32)
