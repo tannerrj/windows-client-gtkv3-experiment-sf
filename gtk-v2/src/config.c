@@ -637,18 +637,16 @@ static void setup_config_dialog() {
 #else
     gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
 #endif
-    gtk_file_chooser_set_filename(theme_filechooser, theme);
 #ifdef _WIN32
-    /* Same fallback for the theme chooser. */
+    /* On Windows the native file dialog ignores set_filename; always navigate
+     * to the themes directory directly so the chooser opens in the right place. */
     {
-        gchar *check = gtk_file_chooser_get_filename(theme_filechooser);
-        if (check == NULL) {
-            gchar *abs_theme_dir = g_build_filename(CF_DATADIR_RT, "themes", NULL);
-            gtk_file_chooser_set_current_folder(theme_filechooser, abs_theme_dir);
-            g_free(abs_theme_dir);
-        }
-        g_free(check);
+        gchar *abs_theme_dir = g_build_filename(CF_DATADIR_RT, "themes", NULL);
+        gtk_file_chooser_set_current_folder(theme_filechooser, abs_theme_dir);
+        g_free(abs_theme_dir);
     }
+#else
+    gtk_file_chooser_set_filename(theme_filechooser, theme);
 #endif
 }
 
