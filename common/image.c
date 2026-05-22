@@ -763,7 +763,7 @@ void get_image_info(guint8 *data, int len) {
      * is not numeric, try to find a matching set and send the
      * relevent setup command.
      */
-    if (face_info.want_faceset && atoi(face_info.want_faceset) == 0) {
+    if (face_info.want_faceset && face_info.want_faceset[0] != '\0' && atoi(face_info.want_faceset) == 0) {
         for (onset = 0; onset < MAX_FACE_SETS; onset++) {
             if (face_info.facesets[onset].prefix &&
                     !g_ascii_strcasecmp(face_info.facesets[onset].prefix, face_info.want_faceset)) {
