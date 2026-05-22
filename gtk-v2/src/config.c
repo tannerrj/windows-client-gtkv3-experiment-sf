@@ -104,7 +104,7 @@ static void apply_theme_css(const char *path) {
  * Load the default CSS theme at startup.
  */
 void init_theme() {
-#ifdef WIN32
+#ifdef _WIN32
     /* On Windows, CF_DATADIR is relative; use the runtime absolute path instead. */
     gchar *default_theme = g_build_filename(CF_DATADIR_RT, "themes", "standard.css", NULL);
     apply_theme_css(default_theme);
@@ -438,7 +438,7 @@ void config_load() {
     }
 
     if (theme == NULL) {
-#ifdef WIN32
+#ifdef _WIN32
         theme = g_build_filename(CF_DATADIR_RT, "themes", "standard.css", NULL);
 #else
         theme = g_strdup(THEME_DEFAULT);
@@ -626,7 +626,7 @@ static void setup_config_dialog() {
     gtk_combo_box_set_active(config_combobox_lighting,
                              want_config[CONFIG_LIGHTING]);
 
-#ifdef WIN32
+#ifdef _WIN32
     /* On Windows the native file dialog ignores set_filename; always navigate
      * to the ui directory directly so the chooser opens in the right place. */
     {
@@ -638,7 +638,7 @@ static void setup_config_dialog() {
     gtk_file_chooser_set_filename(ui_filechooser, window_xml_file);
 #endif
     gtk_file_chooser_set_filename(theme_filechooser, theme);
-#ifdef WIN32
+#ifdef _WIN32
     /* Same fallback for the theme chooser. */
     {
         gchar *check = gtk_file_chooser_get_filename(theme_filechooser);
@@ -728,7 +728,7 @@ static void read_config_dialog(void) {
     // Set UI file.
     buf = gtk_file_chooser_get_filename(ui_filechooser);
     if (buf != NULL) {
-#ifdef WIN32
+#ifdef _WIN32
         /* On Windows the native file dialog returns an absolute path directly;
          * no canonicalization needed and g_canonicalize_filename may mangle
          * Windows paths. Just copy it directly. */

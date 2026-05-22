@@ -108,7 +108,7 @@ char window_xml_file[MAX_BUF];
 GdkRGBA root_color[NUM_COLORS];
 
 GtkBuilder *dialog_xml, *window_xml;
-#ifdef WIN32
+#ifdef _WIN32
 char cf_datadir_abs[MAX_BUF];
 #endif
 GtkWidget *window_root, *magic_map, *connect_window;
@@ -119,7 +119,7 @@ GtkCheckButton *sandbox_enable;
 extern time_t last_command_sent;
 extern bool is_afk;
 
-#ifdef WIN32 /* Win32 scripting support */
+#ifdef _WIN32 /* Win32 scripting support */
 static int do_scriptout() {
     script_process(NULL);
     return (TRUE);
@@ -304,7 +304,7 @@ static gboolean self_tick(gpointer data) {
  * Set up, enter, and exit event loop. Blocks until event loop returns.
  */
 static void event_loop() {
-#ifdef WIN32
+#ifdef _WIN32
     g_timeout_add(250, G_SOURCE_FUNC(do_scriptout), NULL);
 #endif
 
@@ -460,7 +460,7 @@ static void init_ui() {
         exit(EXIT_FAILURE);
     }
 
-#ifdef WIN32
+#ifdef _WIN32
     /* Set the window icon from the PNG bundled next to the exe. */
     {
         gchar *cwd = g_get_current_dir();
@@ -574,7 +574,7 @@ void hide_main_client() {
  * Main client entry point.
  */
 int main(int argc, char *argv[]) {
-#ifdef WIN32
+#ifdef _WIN32
     /* On Windows, set the working directory to the executable's directory
      * so that relative paths like CF_DATADIR ("./share/...") resolve correctly.
      * This change is Windows-only and does not affect Linux or macOS builds.

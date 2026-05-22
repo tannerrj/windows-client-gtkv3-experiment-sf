@@ -25,7 +25,7 @@
 
 #include <gtk/gtk.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 # include <windows.h>
 #endif
 
@@ -80,7 +80,7 @@ static void menu_about(GtkMenuItem *menuitem, gpointer user_data) {
     GtkWidget *about_window;
     about_window = GTK_WIDGET(gtk_builder_get_object(dialog_xml, "about_window"));
 
-#ifdef WIN32
+#ifdef _WIN32
     /* Load the application icon from the install directory and set it as the
      * About dialog logo, overriding the placeholder logo_icon_name in the UI
      * file. On Windows the icon theme is not available, so we load directly

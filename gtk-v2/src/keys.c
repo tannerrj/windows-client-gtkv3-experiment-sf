@@ -940,7 +940,7 @@ static void parse_key(char key, guint32 keysym) {
     snprintf(buf, sizeof(buf),
              "Key %s%s is not bound to any command. Use 'bind' to associate this keypress with a command",
              tmpbuf, keysym == NoSymbol ? "unknown" : gdk_keyval_name(keysym));
-#ifdef WIN32
+#ifdef _WIN32
     if ((65513 != keysym) && (65511 != keysym))
 #endif
         draw_ext_info(NDI_BLACK, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE, buf);
