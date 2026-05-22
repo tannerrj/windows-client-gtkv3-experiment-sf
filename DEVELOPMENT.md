@@ -314,7 +314,7 @@ function returns silently, leaving the defaults set by the preceding
 | About dialog icon on Windows | `menubar.c` | Sets `GdkPixbuf` from `48x48.png` as the logo; upstream shows `image-missing` placeholder |
 | `black.css` dark theme | `gtk-v2/themes/black.css` | Full dark mode: dark `textview`/`treeview` backgrounds; full set of info text and message color classes adjusted for dark backgrounds |
 | CSS color lookup helpers | `info.c`: `get_css_fg_color`, `get_css_bg_color` | Exported helpers; used by `stats.c`, `inventory.c`, `spells.c` for theme-driven colors |
-| GitHub Actions CI | `.github/workflows/build.yml` | Three jobs: Linux full (SDL+curl), Linux minimal (no optional deps), Windows (MSYS2/UCRT64); excludes live metaserver test; Linux full and Windows jobs upload binary artifacts |
+| GitHub Actions CI | `.github/workflows/build.yml` | Three jobs: Linux full (SDL+curl), Linux minimal (no optional deps), Windows (MSYS2/UCRT64); excludes live metaserver test; Linux full and Windows jobs upload binary artifacts; actions updated to Node 24 runtime (`checkout@v6`, `upload-artifact@v7`) |
 | Window title includes layout name | All 11 layout `.ui` files | Titles follow pattern `"Crossfire Client - GTK v3 - <Layout>"` |
 | `BINDIR` and `CF_SOUND_DIR` in `config.h.in` | `config.h.in` | Two new path macros added to the generated header |
 | NSIS Windows installer | `gtk-v2/win32/client.nsi` | Bundles client, DLLs, GTK runtime, data files, sounds, themes, and layouts; creates Start Menu and Desktop shortcuts |

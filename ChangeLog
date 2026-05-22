@@ -43,6 +43,12 @@ based on the gtk3-client-performance-improvements branch.
 - Spurious red error "Message Control settings not loaded" suppressed on first
   launch when the msgs settings file has not yet been created (gtk-v2/src/info.c)
 
+**CI**
+
+- GitHub Actions updated to Node 24 runtime ahead of June 2026 deprecation
+  deadline: actions/checkout v4 → v6, actions/upload-artifact v4 → v7;
+  msys2/setup-msys2 remains at @v2 (Node 24 landed in v2.31.0)
+
 **GTK3 Port**
 
 - Full GTK2 to GTK3 port: GdkColor, GtkTable, GtkHSeparator, stock items,

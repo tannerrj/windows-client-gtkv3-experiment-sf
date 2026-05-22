@@ -511,6 +511,20 @@ Key naming note: the curl package in MSYS2/UCRT64 is
 `mingw-w64-ucrt-x86_64-curl`, not `libcurl`. Perl is pre-installed on the
 `windows-latest` runner and does not need to be listed.
 
+### Node 24 runtime upgrade
+
+GitHub deprecated Node 20 on Actions runners effective June 16, 2026. The
+workflow was updated to use Node 24-compatible action versions:
+
+| Action | Before | After | Notes |
+|---|---|---|---|
+| `actions/checkout` | `@v4` | `@v6` | Node 24 first available in v5.0.0 |
+| `actions/upload-artifact` | `@v4` | `@v7` | Node 24 default from v6.0.0 |
+| `msys2/setup-msys2` | `@v2` | `@v2` | Node 24 landed in v2.31.0; no tag change needed |
+
+All three actions require a minimum Actions Runner version of v2.327.1, which
+is satisfied by the GitHub-hosted `ubuntu-latest` and `windows-latest` runners.
+
 ---
 
 ## Windows/MSYS2 Compatibility Fixes (gtk3-client-performance-improvements branch)

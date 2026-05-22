@@ -121,6 +121,9 @@ A series of targeted changes to reduce CPU usage during normal play.
 - MSYS2 curl package name fix (`curl` not `libcurl`)
 - `cfsndserv.c` made conditional on `HAVE_SOUND` to fix the minimal build
 - Linux full and Windows jobs upload the compiled binary as a workflow artifact
+- Actions updated to Node 24 runtime (deadline: June 2026): `actions/checkout`
+  v4 → v6, `actions/upload-artifact` v4 → v7; `msys2/setup-msys2` stays at
+  `@v2` (Node 24 support landed within the v2 line at v2.31.0)
 
 ---
 
