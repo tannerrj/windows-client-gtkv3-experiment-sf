@@ -1,3 +1,45 @@
+1.75.3-gtk3-perf-1
+==================
+2026-05-22
+
+**GTK3 Port and Performance Improvements (Windows)**
+
+This release is the first packaged build of the GTK3 client for Windows,
+based on the gtk3-client-performance-improvements branch.
+
+**Performance**
+
+- Map rendering: dirty-region tracking eliminates redundant full redraws
+- Map rendering: display_mapscroll blit optimisation and animation frame fix
+- Map rendering: cached darkness light-map surface with direct pixel writes
+- Map rendering: RGB24 surface and OPERATOR_SOURCE reduce software-renderer overhead
+- Map rendering: manual bilinear darkness upscale replaces CAIRO_FILTER_GOOD/BEST
+- Map rendering: direct pixel OVER blend for smooth sub-tiles replaces cairo_fill
+- Inventory: differential store update replaces full rebuild on each change
+- Inventory: GDK_BUTTON_PRESS_MASK replaces GDK_ALL_EVENTS_MASK on table cells
+- Inventory: shared GtkCssProvider for applied-item background color
+- Network: TCP_NODELAY enabled on Windows for Fast TCP option
+- Main loop: idle queue accumulation guard prevents redundant redraws
+- Main loop: removed 1-second sleep from log handler
+- Image loading: single g_main_context_iteration replaces event-drain spin-loop
+- Animation: skip empty animation slots in mapdata_animation()
+
+**Windows fixes**
+
+- Window position save/load now correctly saves and restores all panel positions
+- Theme file chooser now opens in the themes directory instead of the ui directory
+- XPM image loader removed from deployment bundle (caused startup crash)
+- SVG image loader removed from deployment bundle (caused startup crash)
+- All WIN32 preprocessor guards corrected to _WIN32 for MSYS2/UCRT64
+- setsockopt cast fixed for Winsock2 compatibility
+
+**GTK3 Port**
+
+- Full GTK2 to GTK3 port: GdkColor, GtkTable, GtkHSeparator, stock items,
+  cairo drawing, theme system, and more — see GTK3_PORT_CHANGES.md for details
+- CSS theme system with Standard and Black themes
+- GitHub Actions CI: Linux and Windows builds on every push
+
 1.75.3
 ======
 2024-04-10
