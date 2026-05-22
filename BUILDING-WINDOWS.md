@@ -170,7 +170,7 @@ cd ~/crossfire-gtk3-experiment
 bash gtk-v2/test-windows-smoke.sh
 ```
 
-All 12 checks must pass before packaging.
+All 13 checks must pass before packaging.
 
 ---
 

@@ -94,12 +94,12 @@ characters and will fail with the default Windows cp1252 codec.
 
 ### WIN32 guards
 
-All Windows-specific code must be wrapped in `#ifdef WIN32` / `#endif`. The
+All Windows-specific code must be wrapped in `#ifdef _WIN32` / `#endif`. The
 `#else` branch should contain the original cross-platform code. Never leave an
 empty `#else` block without a comment.
 
 ```c
-#ifdef WIN32
+#ifdef _WIN32
     /* Windows-specific implementation */
     ...
 #else
@@ -113,7 +113,7 @@ empty `#else` block without a comment.
 POSIX networking constants (`TCP_NODELAY`, `SOL_TCP`, `IPPROTO_TCP`) come from
 `<gio/gnetworking.h>`, which is not available on Windows. On Windows they are
 defined in `<winsock2.h>` (already included via `client.h`). Use the
-`HAVE_GIO_GNETWORKING_H` / `WIN32` split rather than a single `#ifndef WIN32`:
+`HAVE_GIO_GNETWORKING_H` / `_WIN32` split rather than a single `#ifndef _WIN32`:
 
 ```c
 #ifdef HAVE_GIO_GNETWORKING_H
@@ -124,7 +124,7 @@ defined in `<winsock2.h>` (already included via `client.h`). Use the
 #if defined(HAVE_GIO_GNETWORKING_H)
     if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &i, sizeof(i)) == -1)
         perror("TCP_NODELAY");
-#elif defined(WIN32)
+#elif defined(_WIN32)
     /* Winsock setsockopt requires (const char*) for optval. */
     setsockopt((SOCKET)fd, IPPROTO_TCP, TCP_NODELAY, (const char *)&i, sizeof(i));
 #endif
@@ -161,7 +161,7 @@ GTK2-format theme files alongside `.css` files).
 On Windows the native file dialog silently ignores
 `gtk_file_chooser_set_filename()`. Always use
 `gtk_file_chooser_set_current_folder()` with an absolute path built from
-`CF_DATADIR_RT` inside a `#ifdef WIN32` block, and call
+`CF_DATADIR_RT` inside a `#ifdef _WIN32` block, and call
 `gtk_file_chooser_set_filename()` only in the `#else` branch for non-Windows
 platforms. Do not attempt to probe with `get_filename()` as a fallback — the
 call will return NULL on Windows because `set_filename` was silently ignored,
@@ -203,8 +203,8 @@ Longer explanation of what was broken and why. Include:
 - What the fix does
 - Any relevant caveats or platform restrictions
 
-WIN32-only changes end with:
-"All changes are guarded by WIN32 conditions and do not affect
+_WIN32-only changes end with:
+"All changes are guarded by _WIN32 conditions and do not affect
 Linux or macOS builds."
 ```
 
@@ -322,9 +322,10 @@ Run before committing any change to `config.c`, `main.c`, `inventory.c`,
 bash gtk-v2/test-windows-smoke.sh
 ```
 
-Checks performed: `_WIN32` guard usage, XPM call guards, GtkPaned type check
-style, file chooser folder navigation, deploy folder integrity (exe present,
-no xpm/svg loaders, clean loaders.cache, gschemas.compiled present).
+Checks performed (13 total): `_WIN32` guard usage, XPM call guards, GtkPaned
+type check style, file chooser folder navigation, deploy folder integrity
+(exe present, no xpm/svg loaders, clean loaders.cache, gschemas.compiled
+present, `client.ico` present, no GTK2 theme files, `sounds.conf` present).
 
 ---
 

@@ -32,6 +32,9 @@ based on the gtk3-client-performance-improvements branch.
 - SVG image loader removed from deployment bundle (caused startup crash)
 - All WIN32 preprocessor guards corrected to _WIN32 for MSYS2/UCRT64
 - setsockopt cast fixed for Winsock2 compatibility
+- Sounds directory deployed via cmake install and verified by smoke test
+- GTK2-format theme files explicitly removed from deploy after cmake install
+- Deploy integrity verified by 13-check smoke test (client.ico, sounds.conf, loaders, schemas)
 
 **GTK3 Port**
 

@@ -39,7 +39,7 @@ The upstream's `init_theme()` added the CSS provider once at startup and never r
 - `load_theme()` now calls `apply_theme_css()` before invoking `*_get_styles()`, so the CSS is active when colors are read.
 - Two exported helpers in `info.c` — `get_css_fg_color(class, out)` and `get_css_bg_color(class, out)` — allow any module to read a color from a named CSS class without coupling to `info.c` internals.
 - `read_config_dialog()` passes the file chooser result through `g_canonicalize_filename()` before storing it, guaranteeing `client.ini` always records an absolute path. The same applies to the UI layout file chooser. A pre-existing memory leak (when the chosen theme equalled the current theme) was also fixed.
-- `setup_config_dialog()` uses `gtk_file_chooser_set_current_folder()` on Windows (the native file dialog silently ignores `set_filename()`) and `gtk_file_chooser_set_filename()` on other platforms, controlled via `#ifdef WIN32` / `#else` blocks.
+- `setup_config_dialog()` uses `gtk_file_chooser_set_current_folder()` on Windows (the native file dialog silently ignores `set_filename()`) and `gtk_file_chooser_set_filename()` on other platforms, controlled via `#ifdef _WIN32` / `#else` blocks.
 
 Application-specific CSS classes were added to `standard.css`:
 
@@ -60,7 +60,7 @@ Two invalid GTK2/X11 color names that GTK3's CSS parser silently drops were fixe
 The fork introduces `CF_DATADIR_RT` in `main.h`:
 
 ```c
-#ifdef WIN32
+#ifdef _WIN32
 extern char cf_datadir_abs[MAX_BUF];
 #define CF_DATADIR_RT cf_datadir_abs
 #else
@@ -74,7 +74,7 @@ extern char cf_datadir_abs[MAX_BUF];
 
 On Windows, `gdk_pixbuf_new_from_xpm_data()` requires the XPM loader plugin, which is absent from the bundled GTK runtime. Bundling the plugin caused a double-registration crash on startup.
 
-The fork works around this by generating `inv_pixbufs.h` (747 lines) from the source XPM files using `gdk-pixbuf-csource`. On Windows (`#ifdef WIN32`), `inventory.c` loads tab icons from the inline byte arrays instead of calling `gdk_pixbuf_new_from_xpm_data`.
+The fork works around this by generating `inv_pixbufs.h` (747 lines) from the source XPM files using `gdk-pixbuf-csource`. On Windows (`#ifdef _WIN32`), `inventory.c` loads tab icons from the inline byte arrays instead of calling `gdk_pixbuf_new_from_xpm_data`.
 
 The `applied_color` constant was also updated:
 ```c
@@ -257,7 +257,7 @@ Replaced with a single `g_main_context_iteration(NULL, FALSE)`, which dispatches
 
 The `CONFIG_FASTTCP` ("Fast TCP") preference was blocked by `#ifndef WIN32` guards in both `common/client.c` and `gtk-v2/src/config.c`, so the setting had no effect on Windows. Windows Winsock supports `TCP_NODELAY` via `setsockopt` with `IPPROTO_TCP` as the level and `(const char*)` as the optval type.
 
-`client.c` now uses `#if defined(HAVE_GIO_GNETWORKING_H)` / `#elif defined(WIN32)` to dispatch to the correct ABI. `config.c` received the same split and also fixed a pre-existing bug where `csocket.fd` (a `GSocketConnection*`) was passed directly to `setsockopt` instead of extracting the raw fd via `g_socket_connection_get_socket()` + `g_socket_get_fd()`. A missing `#include <gio/gnetworking.h>` (needed for `TCP_NODELAY` on POSIX) was also added to `config.c`.
+`client.c` now uses `#if defined(HAVE_GIO_GNETWORKING_H)` / `#elif defined(_WIN32)` to dispatch to the correct ABI. `config.c` received the same split and also fixed a pre-existing bug where `csocket.fd` (a `GSocketConnection*`) was passed directly to `setsockopt` instead of extracting the raw fd via `g_socket_connection_get_socket()` + `g_socket_get_fd()`. A missing `#include <gio/gnetworking.h>` (needed for `TCP_NODELAY` on POSIX) was also added to `config.c`.
 
 #### `my_log_handler` — 1-Second Sleep Removed
 
