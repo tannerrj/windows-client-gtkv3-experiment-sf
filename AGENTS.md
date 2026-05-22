@@ -260,3 +260,93 @@ file, verify the following on Windows:
 - [ ] `client.ini` `theme` and `window_layout` values are absolute paths after Apply
 - [ ] Application icon appears in Explorer, taskbar, and Alt-Tab switcher
 - [ ] Start Menu and Desktop shortcuts have the Crossfire icon
+### GTK type system on Windows/MSYS2 UCRT64
+
+`GtkHPaned` and `GtkVPaned` are registered as distinct GTypes in the MSYS2
+UCRT64 GTK3 build. An exact type comparison such as `type == GTK_TYPE_PANED`
+will not match them. Always use `g_type_is_a(type, GTK_TYPE_PANED)` when
+checking whether an object is a paned widget. This affects any code that
+iterates `gtk_builder_get_objects()` and filters by type, including
+`save_winpos()` and `load_window_positions()` in `config.c`.
+
+```c
+/* Wrong - misses GtkHPaned and GtkVPaned on Windows */
+if (G_OBJECT_TYPE(widget) == GTK_TYPE_PANED) { ... }
+
+/* Correct - matches GtkPaned, GtkHPaned, GtkVPaned */
+if (g_type_is_a(G_OBJECT_TYPE(widget), GTK_TYPE_PANED)) { ... }
+```
+
+### WIN32 preprocessor macro on MSYS2
+
+MSYS2/UCRT64 defines `_WIN32`, not `WIN32`. All Windows-specific guards must
+use `#ifdef _WIN32`. The macro `WIN32` without the leading underscore is not
+defined by the MSYS2 compiler and guards using it will be silently skipped.
+When reviewing existing code, grep for `#ifdef WIN32` and replace with
+`#ifdef _WIN32`. The smoke test `gtk-v2/test-windows-smoke.sh` checks for
+this automatically.
+
+### XPM images on Windows
+
+`libpixbufloader-xpm.dll` causes a fatal `cannot register existing type
+'GdkPixbuf'` crash on Windows due to a GObject type registration conflict.
+Do not include this loader in the Windows deployment bundle. Any code that
+calls `gdk_pixbuf_new_from_xpm_data()` must be wrapped in `#ifdef _WIN32` /
+`#else` and use `gdk_pixbuf_new_from_inline()` with pre-converted RGBA data
+on Windows. Use `gdk-pixbuf-csource` to generate the inline header:
+
+```bash
+gdk-pixbuf-csource --name=foo_inline pixmaps/foo.xpm > gtk-v2/src/foo_inline.h
+```
+
+Then in the source file:
+
+```c
+#ifdef _WIN32
+#include "foo_inline.h"
+    pb = gdk_pixbuf_new_from_inline(-1, foo_inline, FALSE, NULL);
+#else
+#include "../../pixmaps/foo.xpm"
+    pb = gdk_pixbuf_new_from_xpm_data((const char **)foo_xpm);
+#endif
+```
+
+---
+
+## Automated smoke test
+
+Run before committing any change to `config.c`, `main.c`, `inventory.c`,
+`image.c`, or deploy scripts:
+
+```bash
+bash gtk-v2/test-windows-smoke.sh
+```
+
+Checks performed: `_WIN32` guard usage, XPM call guards, GtkPaned type check
+style, file chooser folder navigation, deploy folder integrity (exe present,
+no xpm/svg loaders, clean loaders.cache, gschemas.compiled present).
+
+---
+
+## Testing checklist (updated)
+
+Before committing any change that touches `config.c`, `main.c`, `inventory.c`,
+`image.c`, or a `.ui` file, verify the following on Windows:
+
+- [ ] Smoke test passes: `bash gtk-v2/test-windows-smoke.sh`
+- [ ] Client launches without error dialogs or GLib-GObject-CRITICAL warnings
+- [ ] No `cannot register existing type` errors in stderr
+- [ ] Metaserver browser appears and populates
+- [ ] Edit -> Preferences opens correctly
+- [ ] Theme chooser opens in the themes directory (not the ui directory)
+- [ ] Layout chooser opens in the ui directory
+- [ ] Selecting black.css and clicking Apply changes message colours
+- [ ] Edit -> Save Window Position writes paned positions to client.ini
+- [ ] Verify: grep -A 10 "[gtk-v2.ui]" "$APPDATA/Local/crossfire/client.ini"
+- [ ] That output must contain vpaned_map_stats, hpaned_client etc, not just window_root
+- [ ] Restarting the client restores panel positions from the saved values
+- [ ] Settings persist correctly after restarting the client
+- [ ] client.ini theme and window_layout values are absolute paths after Apply
+- [ ] Application icon appears in Explorer, taskbar, and Alt-Tab switcher
+- [ ] Inventory panel tabs show icons (not blank or missing)
+- [ ] No XPM loader warnings in stderr output
