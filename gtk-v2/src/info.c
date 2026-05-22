@@ -18,6 +18,7 @@
 
 #include "client.h"
 
+#include <errno.h>
 #include <gtk/gtk.h>
 
 #include "image.h"
@@ -1513,10 +1514,12 @@ void load_msgctrl_configuration(void)
     snprintf(pathbuf, sizeof(pathbuf), "%s/msgs", config_dir);
 
     if ((fptr = fopen(pathbuf, "r")) == NULL) {
-        snprintf(textbuf, sizeof(textbuf),
-                 "Error opening %s, Message Control settings not loaded.",pathbuf);
-        draw_ext_info(
-            NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
+        if (errno != ENOENT) {
+            snprintf(textbuf, sizeof(textbuf),
+                     "Error opening %s, Message Control settings not loaded.",pathbuf);
+            draw_ext_info(
+                NDI_RED, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_ERROR, textbuf);
+        }
         return;
     }
     /*
