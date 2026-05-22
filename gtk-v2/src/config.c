@@ -796,7 +796,7 @@ void save_winpos() {
     for (list_loop = pane_list; list_loop != NULL; list_loop = list_loop->next) {
         GType type = G_OBJECT_TYPE(list_loop->data);
 
-        if (type == GTK_TYPE_PANED) {
+        if (g_type_is_a(type, GTK_TYPE_PANED)) {
             g_key_file_set_integer(config, ui_name(),
                     gtk_buildable_get_name(list_loop->data),
                     gtk_paned_get_position(GTK_PANED(list_loop->data)));
@@ -853,7 +853,7 @@ void load_window_positions(GtkWidget *window_root) {
     for (list = pane_list; list != NULL; list = list->next) {
         GType type = G_OBJECT_TYPE(list->data);
 
-        if (type == GTK_TYPE_PANED) {
+        if (g_type_is_a(type, GTK_TYPE_PANED)) {
             int position = g_key_file_get_integer(config, ui_name(),
                     gtk_buildable_get_name(list->data), NULL);
 
