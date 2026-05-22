@@ -235,6 +235,14 @@ Run the installer as Administrator. The default install path is:
 C:\Program Files\Crossfire Client\
 ```
 
+If you have previously installed the client to a different directory, clear
+the stale theme path from `client.ini` before launching, otherwise all text
+will appear black:
+
+```bash
+sed -i '/^theme=/d' "/c/Users/$USERNAME/AppData/Local/crossfire/client.ini"
+```
+
 To update just the executable without reinstalling:
 
 ```powershell
@@ -255,6 +263,20 @@ C:\Users\<username>\AppData\Local\crossfire\client.ini
 If the `theme` or `window_layout` keys point to stale paths after
 reinstalling to a different directory, delete those lines and restart
 the client. The client will use default values.
+
+**Important when changing the install directory:** If a previous install
+used a different directory name (for example `CrossfireClient` instead of
+`Crossfire Client`), the saved `theme=` path in `client.ini` will point to
+the old location and the client will silently load no theme, causing all
+text to appear black. Delete the `theme=` line before launching:
+
+```bash
+sed -i '/^theme=/d' "/c/Users/$USERNAME/AppData/Local/crossfire/client.ini"
+```
+
+Or manually edit `client.ini` in Notepad and delete the `theme=` line.
+The client will default to `standard.css` from the new install location
+on next launch.
 
 ---
 
