@@ -141,6 +141,11 @@ cmake -P cmake_install.cmake
 
 # Copy to deploy
 cp -r ~/crossfire-gtk3-experiment/build-ucrt64/share/. "$DEPLOY/share/"
+
+# Remove GTK2-format theme files installed by cmake
+# These appear alongside the CSS files in the theme chooser and break theming
+rm -f "$DEPLOY/share/crossfire-client/themes/Black"
+rm -f "$DEPLOY/share/crossfire-client/themes/Standard"
 ```
 
 ### 6. Create the launcher script
@@ -165,7 +170,7 @@ cd ~/crossfire-gtk3-experiment
 bash gtk-v2/test-windows-smoke.sh
 ```
 
-All 10 checks must pass before packaging.
+All 12 checks must pass before packaging.
 
 ---
 
@@ -192,8 +197,10 @@ share/crossfire-client/themes/standard.css
 share/crossfire-client/themes/black.css
 ```
 
-Do not install GTK2-format `Standard` or `Black` files - they are
-incompatible with GTK3's CSS provider.
+The GTK2-format `Standard` and `Black` files are installed by `cmake -P
+cmake_install.cmake` and must be explicitly removed from the deploy folder
+(see step 5). If present they appear in the theme chooser alongside the CSS
+files and cause colorized text to stop working when selected.
 
 ---
 
