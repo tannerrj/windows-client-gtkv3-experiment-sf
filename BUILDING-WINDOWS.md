@@ -237,7 +237,7 @@ Only `sounds.conf` and the `.wav`/audio asset files should remain.
 
 ```bash
 DEPLOY=~/crossfire-gtk3-deploy
-GITVER=$(cd ~/crossfire-gtk3-experiment && git describe --tags --always)
+GITVER=g$(cd ~/crossfire-gtk3-experiment && git rev-parse --short=7 HEAD)
 
 cd ~/crossfire-gtk3-experiment/gtk-v2/win32
 makensis \
@@ -251,7 +251,13 @@ makensis \
 The installer is written to:
 
 ```
-~/CrossfireClient-git-<GITVER>.exe
+~/Crossfire-GTK3-Client-g<7-char-hash>-Setup.exe
+```
+
+For example:
+
+```
+~/Crossfire-GTK3-Client-g88d2c02-Setup.exe
 ```
 
 ### Installing for testing

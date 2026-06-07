@@ -30,10 +30,16 @@ SetCompressor /SOLID lzma
 
 ;Output File Name
 ;If the user passed "-DOUTPUTDIR=something" when invoking the script, use that. Else, use the current working directory.
-!ifdef OUTPUTDIR
-OutFile "${OUTPUTDIR}\CrossfireClient-${REVISION}.exe"
+!ifdef GITVERSION
+!define SETUPNAME "${GITVERSION}"
 !else
-OutFile "CrossfireClient-${REVISION}.exe"
+!define SETUPNAME "unknown"
+!endif
+
+!ifdef OUTPUTDIR
+OutFile "${OUTPUTDIR}\Crossfire-GTK3-Client-${SETUPNAME}-Setup.exe"
+!else
+OutFile "Crossfire-GTK3-Client-${SETUPNAME}-Setup.exe"
 !endif
 
 ;The Default Installation Directory
