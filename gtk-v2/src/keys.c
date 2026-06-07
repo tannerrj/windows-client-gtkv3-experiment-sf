@@ -2038,7 +2038,7 @@ void toggle_buttons_scope(int scope) {
 static int keybind_overwrite_confirm(struct keybind *kb) {
     GtkWidget *dialog, *label;
     int result;
-    char buf[MAX_BUF], buf2[MAX_BUF];
+    char buf[MAX_BUF * 2], buf2[MAX_BUF];
 
     dialog = gtk_dialog_new_with_buttons(
                  "Key already in use",
