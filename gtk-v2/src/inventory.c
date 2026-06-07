@@ -1304,7 +1304,7 @@ static void draw_inv_table(int animate) {
              * Looking at the code, the tooltip widget will take care of
              * removing the old tooltip, freeing strings, etc.
              */
-            snprintf(buf, 255, "%s %s", tmp->d_name, tmp->flags);
+            snprintf(buf, sizeof(buf), "%s %s", tmp->d_name, tmp->flags);
             gtk_widget_set_tooltip_text(INV_TABLE_AT(x, y, columns), buf);
         }
         x++;

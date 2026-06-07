@@ -1431,7 +1431,7 @@ void update_msgctrl_configuration(void)
 void save_msgctrl_configuration(void)
 {
     char  pathbuf[MAX_BUF];             /* Buffer for a save file path name */
-    char  textbuf[MAX_BUF];             /* Buffer for output to save file   */
+    char  textbuf[MAX_BUF * 2];         /* Buffer for output to save file   */
     FILE* fptr;                         /* Message Control savefile pointer */
     guint pane;                         /* Client-supported message pane    */
     guint type;                         /* Message type                     */
