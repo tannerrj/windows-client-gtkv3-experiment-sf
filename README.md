@@ -1,4 +1,4 @@
-# Crossfire Client — GTK3 Windows Port
+# Crossfire Client - GTK3 Windows Port
 
 Crossfire is a free, open-source, cooperative multi-player RPG and adventure
 game. Since its initial release, Crossfire has grown to encompass over 150
@@ -20,7 +20,7 @@ originates from SourceForge at:
 > https://sourceforge.net/p/crossfire/crossfire-client/ci/gtk3/tree/
 
 The fork point is commit
-`4285a62cd3de64190957144d505f636dcd3d6926` — the tip of the upstream `gtk3`
+`4285a62cd3de64190957144d505f636dcd3d6926` - the tip of the upstream `gtk3`
 branch at the time this work began. All commits beyond that point are original
 to this repository.
 
@@ -46,7 +46,7 @@ and the origin of the code base from SourceForge.
 
 If you have played Crossfire before and are wondering why the client looks
 slightly different, or why a new installer is needed: the short answer is that
-the old graphical toolkit the client was built on — GTK2 — is no longer
+the old graphical toolkit the client was built on - GTK2 - is no longer
 maintained and is quietly disappearing from modern operating systems. GTK2 was
 released in 2002 and its final version shipped in 2011. Linux distributions are
 dropping it, and on Windows it was never easy to install in the first place.
@@ -61,11 +61,11 @@ GTK2 reached end-of-life with version 2.24 (2011) and has received no upstream
 development since. GTK3, first released in 2011, completed the transition to a
 modern rendering pipeline and has been the supported stable series ever since
 (with GTK 3.24 as the current long-term release). Several GTK2 APIs were
-deprecated across GTK 3.0–3.22 and formally removed in GTK 4; compiling the
+deprecated across GTK 3.0-3.22 and formally removed in GTK 4; compiling the
 old client against a current GTK3 installation produces hundreds of deprecation
 warnings and in some cases link errors. The port replaces the most impactful
-deprecated APIs — `GdkColor`, `GtkTable`, `GtkHSeparator`, `GTK_STOCK_*` items,
-`gdk_cairo_create`, `gtk_widget_modify_base/bg`, and the RC-file theme system —
+deprecated APIs - `GdkColor`, `GtkTable`, `GtkHSeparator`, `GTK_STOCK_*` items,
+`gdk_cairo_create`, `gtk_widget_modify_base/bg`, and the RC-file theme system -
 with their GTK3 equivalents (`GdkRGBA`, `GtkGrid`, `GtkSeparator`, mnemonic
 labels, the `draw` signal with a persistent `cairo_surface_t`, `GtkCssProvider`,
 and CSS-based theming). The result compiles cleanly against GTK 3.24 with
@@ -83,43 +83,43 @@ prevented it from being usable as a Windows installer. The following problems
 were identified and resolved. For full technical details, refer to the git
 commit log.
 
-- **CMake Unix-only targets on Windows** — X11 detection and Linux desktop
+- **CMake Unix-only targets on Windows** - X11 detection and Linux desktop
   icon install rules failed the Windows build.
 
-- **Relative data paths at runtime** — The compile-time `CF_DATADIR` path is
+- **Relative data paths at runtime** - The compile-time `CF_DATADIR` path is
   relative and only valid if the client is launched from the install root. All
   runtime data lookups (themes, layouts, icons) silently failed when the client
   was started from a shortcut.
 
-- **Layout file chooser** — The Preferences → Layout file chooser opened to
+- **Layout file chooser** - The Preferences -> Layout file chooser opened to
   an undefined location rather than the installed UI directory.
 
-- **CSS theme loading** — The GTK3 CSS theme failed to load entirely on
+- **CSS theme loading** - The GTK3 CSS theme failed to load entirely on
   Windows, causing all message text in the info pane to render in a single
   default color with no per-message-type colorization.
 
-- **Theme file chooser** — The Preferences → Theme file chooser opened to an
+- **Theme file chooser** - The Preferences -> Theme file chooser opened to an
   undefined location rather than the installed themes directory. GTK2-format
   theme files (`Standard`, `Black`) appeared alongside the valid CSS files and
   would fail silently if selected.
 
-- **About dialog icon** — The Help → About dialog displayed a generic
+- **About dialog icon** - The Help -> About dialog displayed a generic
   placeholder icon (`image-missing`) instead of the Crossfire application icon.
 
-- **Inventory filter tab icons** — The inventory panel filter tabs (All,
+- **Inventory filter tab icons** - The inventory panel filter tabs (All,
   Applied, Unapplied, Unpaid, Cursed, Magical, etc.) displayed no icons. The
   XPM loader plugin required by `gdk_pixbuf_new_from_xpm_data()` is not
   present in the bundled GTK runtime, and bundling it caused a double-
   registration crash.
 
-- **Spurious red error on first launch: faceset not found** — On every first
+- **Spurious red error on first launch: faceset not found** - On every first
   launch (before any preferences are saved) the client printed `"Unable to find
   match for faceset  on the server"` in red. The client was treating an empty
   "no preference" value as a faceset name to search for and reporting the
   predictable failure as an error. The message is now suppressed when no
   faceset preference has been configured.
 
-- **Spurious red error on first launch: Message Control settings not loaded** —
+- **Spurious red error on first launch: Message Control settings not loaded** -
   On every first launch the client printed a red error naming a settings file
   (`config_dir/msgs`) that does not exist until the user saves Message Control
   preferences. A missing file is now treated as a silent first-run condition
@@ -130,26 +130,26 @@ commit log.
 
 ## What was added
 
-- **Windows application icon** — The Crossfire icon is embedded in the
+- **Windows application icon** - The Crossfire icon is embedded in the
   compiled `.exe` via a Windows resource file, and the GTK window icon is set
   at runtime from the bundled PNG files. The installer and desktop/Start Menu
   shortcuts also use the Crossfire icon.
 
-- **Layout name in the title bar** — The main window title bar displays the
-  name of the currently active UI layout (e.g. `Crossfire Client GTK v3 —
+- **Layout name in the title bar** - The main window title bar displays the
+  name of the currently active UI layout (e.g. `Crossfire Client GTK v3 -
   sixforty`), making it easy to identify which layout is in use. This feature
   was present in the upstream commits before the fork point.
 
-- **Windows installer** — A self-contained NSIS `.exe` installer bundles the
+- **Windows installer** - A self-contained NSIS `.exe` installer bundles the
   client, all required DLLs, the GTK runtime, data files, sounds, themes, and
   layout files. The installer creates Start Menu and Desktop shortcuts with the
   correct working directory and application icon.
 
-- **AGENTS.md** — Contributor and AI agent guidance document covering the
+- **AGENTS.md** - Contributor and AI agent guidance document covering the
   source tree layout, build conventions, WIN32 coding patterns, known platform
   issues, and a pre-commit testing checklist.
 
-- **BUILDING-WINDOWS.md** — Full step-by-step documentation for building and
+- **BUILDING-WINDOWS.md** - Full step-by-step documentation for building and
   packaging the Windows installer from source using MSYS2/UCRT64.
 
 ---
@@ -190,7 +190,7 @@ details see `DEVELOPMENT.md`.
 All Windows-specific changes are guarded by `#ifdef _WIN32` (C source) or
 `if(WIN32)` (CMake) conditions. The Linux and macOS build paths are unchanged. The GitHub Actions CI
 workflow builds the client in three jobs on every push or pull request to the
-`gtk3` and `master` branches — two Linux configurations and one Windows build —
+`gtk3` and `master` branches - two Linux configurations and one Windows build -
 and confirms that none of the platform-specific changes break any other target.
 See `.github/workflows/build.yml`.
 

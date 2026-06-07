@@ -1,4 +1,4 @@
-# AGENTS.md — Crossfire GTK3 Client
+# AGENTS.md - Crossfire GTK3 Client
 
 This file describes the repository structure, build system, conventions, and
 guidelines for AI agents (and human contributors) working on this codebase.
@@ -14,40 +14,40 @@ while remaining buildable on Linux and macOS.
 
 ```
 .
-├── common/                  Shared client library (protocol, init, state)
-│   ├── client.c             Global variables including config_dir, cache_dir
-│   ├── client.h             Externs for shared globals
-│   └── init.c               Sets config_dir via g_get_user_config_dir()
-├── gtk-v2/
-│   ├── src/                 GTK3 client source
-│   │   ├── main.c           Entry point, window setup, WIN32 startup
-│   │   ├── main.h           CF_DATADIR_RT macro, cf_datadir_abs extern
-│   │   ├── config.c         Preferences, theme loading, config file I/O
-│   │   ├── config.h
-│   │   ├── info.c           Info/message pane
-│   │   ├── keys.c           Keybinding support
-│   │   ├── map.c            Map rendering
-│   │   ├── image.c          Image/face handling
-│   │   ├── inventory.c      Inventory panel
-│   │   ├── stats.c          Character stats panel
-│   │   ├── metaserver.c     Server browser
-│   │   ├── account.c        Account login/creation
-│   │   ├── create_char.c    Character creation
-│   │   ├── crossfire.rc     Windows resource file (embeds client.ico)
-│   │   └── CMakeLists.txt   Per-target build rules
-│   ├── ui/                  GtkBuilder UI definition files
-│   │   ├── dialogs.ui       Preferences, keybinding, about, spell dialogs
-│   │   └── *.ui             Layout files (sixforty.ui, divided_112.ui, etc.)
-│   └── CMakeLists.txt       GTK-v2 subdirectory cmake
-├── pixmaps/                 Application icons
-│   ├── client.ico           Windows icon (9 sizes, 16-bit colour)
-│   ├── 16x16.png
-│   ├── 32x32.png
-│   └── 48x48.png
-├── sounds/                  Sound effects
-├── CMakeLists.txt           Root cmake
-├── BUILDING-WINDOWS.md      Windows installer build guide
-└── AGENTS.md                This file
++-- common/                  Shared client library (protocol, init, state)
+|   +-- client.c             Global variables including config_dir, cache_dir
+|   +-- client.h             Externs for shared globals
+|   `-- init.c               Sets config_dir via g_get_user_config_dir()
++-- gtk-v2/
+|   +-- src/                 GTK3 client source
+|   |   +-- main.c           Entry point, window setup, WIN32 startup
+|   |   +-- main.h           CF_DATADIR_RT macro, cf_datadir_abs extern
+|   |   +-- config.c         Preferences, theme loading, config file I/O
+|   |   +-- config.h
+|   |   +-- info.c           Info/message pane
+|   |   +-- keys.c           Keybinding support
+|   |   +-- map.c            Map rendering
+|   |   +-- image.c          Image/face handling
+|   |   +-- inventory.c      Inventory panel
+|   |   +-- stats.c          Character stats panel
+|   |   +-- metaserver.c     Server browser
+|   |   +-- account.c        Account login/creation
+|   |   +-- create_char.c    Character creation
+|   |   +-- crossfire.rc     Windows resource file (embeds client.ico)
+|   |   `-- CMakeLists.txt   Per-target build rules
+|   +-- ui/                  GtkBuilder UI definition files
+|   |   +-- dialogs.ui       Preferences, keybinding, about, spell dialogs
+|   |   `-- *.ui             Layout files (sixforty.ui, divided_112.ui, etc.)
+|   `-- CMakeLists.txt       GTK-v2 subdirectory cmake
++-- pixmaps/                 Application icons
+|   +-- client.ico           Windows icon (9 sizes, 16-bit colour)
+|   +-- 16x16.png
+|   +-- 32x32.png
+|   `-- 48x48.png
++-- sounds/                  Sound effects
++-- CMakeLists.txt           Root cmake
++-- BUILDING-WINDOWS.md      Windows installer build guide
+`-- AGENTS.md                This file
 ```
 
 ---
@@ -85,11 +85,11 @@ full Windows-style path:
 # Correct
 open('C:/msys64/home/leaf/client/windows-client-gtkv3-experiment-sf/gtk-v2/src/config.c')
 
-# Wrong — Python resolves ~ to C:\Users\leaf, not the MSYS2 home
+# Wrong - Python resolves ~ to C:\Users\leaf, not the MSYS2 home
 open('~/client/...')
 ```
 
-Always open `.ui` files with `encoding='utf-8'` — they contain non-ASCII
+Always open `.ui` files with `encoding='utf-8'` - they contain non-ASCII
 characters and will fail with the default Windows cp1252 codec.
 
 ### WIN32 guards
@@ -163,7 +163,7 @@ On Windows the native file dialog silently ignores
 `gtk_file_chooser_set_current_folder()` with an absolute path built from
 `CF_DATADIR_RT` inside a `#ifdef _WIN32` block, and call
 `gtk_file_chooser_set_filename()` only in the `#else` branch for non-Windows
-platforms. Do not attempt to probe with `get_filename()` as a fallback — the
+platforms. Do not attempt to probe with `get_filename()` as a fallback - the
 call will return NULL on Windows because `set_filename` was silently ignored,
 not because the path is stale.
 
@@ -175,7 +175,7 @@ of what the chooser widget returns.
 ### UI files
 
 `dialogs.ui` and the layout `.ui` files are GtkBuilder XML. They must remain
-valid GtkBuilder XML at all times — the client will display an error dialog and
+valid GtkBuilder XML at all times - the client will display an error dialog and
 exit if `gtk_builder_add_from_file()` fails. Always test UI file changes by
 copying them to the install directory and launching the client before
 committing. Never embed a `GtkFileFilter` as a sibling object inside a
@@ -195,7 +195,7 @@ incompatible with GTK3's CSS provider and must not be installed.
 Follow the pattern established in this branch:
 
 ```
-subsystem[, subsystem]: Short imperative summary (≤72 chars)
+subsystem[, subsystem]: Short imperative summary (<=72 chars)
 
 Longer explanation of what was broken and why. Include:
 - The symptom the user experienced
@@ -230,16 +230,16 @@ different directory), delete the relevant lines and restart the client.
 
 ## Known platform issues
 
-- **GtkFileFilter ignored on Windows** — the native file dialog does not honour
+- **GtkFileFilter ignored on Windows** - the native file dialog does not honour
   GTK filter rules. Workaround: control available files via what is installed,
   not via filters.
-- **Relative paths at runtime** — `CF_DATADIR` is a relative compile-time path
+- **Relative paths at runtime** - `CF_DATADIR` is a relative compile-time path
   and is only valid if the working directory is the install root. Use
   `CF_DATADIR_RT` everywhere in source code.
-- **`g_getenv("HOME")` on Windows** — returns `C:\Users\<user>`, not the
+- **`g_getenv("HOME")` on Windows** - returns `C:\Users\<user>`, not the
   MSYS2 home. Code that reads legacy config from `$HOME/.crossfire/` may not
   find files in the MSYS2 home directory.
-- **Icon format** — `client.ico` contains only 16x16 and 32x32 images at
+- **Icon format** - `client.ico` contains only 16x16 and 32x32 images at
   4-bit colour depth. The GTK window icon is loaded separately from `48x48.png`
   to get a higher-quality titlebar icon.
 
@@ -252,7 +252,7 @@ file, verify the following on Windows:
 
 - [ ] Client launches without error dialogs
 - [ ] Metaserver browser appears and populates
-- [ ] Edit → Preferences opens correctly
+- [ ] Edit -> Preferences opens correctly
 - [ ] Theme chooser opens with the currently active `.css` file pre-selected
 - [ ] Layout chooser opens with the currently active `.ui` file pre-selected
 - [ ] Selecting `black.css` and clicking Apply changes message colours

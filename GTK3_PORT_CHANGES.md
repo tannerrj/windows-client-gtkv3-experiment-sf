@@ -10,7 +10,7 @@ developers who need to understand, maintain, or extend this codebase.
 ## Background
 
 The GTK client (`gtk-v2/`) was written against GTK2 and accumulated a large
-number of APIs that were deprecated across GTK 3.0–3.22 and finally removed in
+number of APIs that were deprecated across GTK 3.0-3.22 and finally removed in
 GTK 4.  The port targets GTK 3.24 (the current LTS release and the last 3.x
 series), which still ships all the removed GTK2 APIs as deprecated stubs.
 Compiling with `-Wno-deprecated-declarations` lets the tree build cleanly while
@@ -60,12 +60,12 @@ check_include_files(sys/capsicum.h HAVE_CAPSICUM)
 #cmakedefine HAVE_CAPSICUM
 ```
 
-**`gtk-v2/ui/dialogs.ui`** — An "Enable Sandbox" `GtkCheckButton` with
+**`gtk-v2/ui/dialogs.ui`** - An "Enable Sandbox" `GtkCheckButton` with
 `id="sandbox_enable"` was added to the metaserver dialog's button row, before
 the Connect button.  The widget's `sensitive` property defaults to `False` in
 the UI file; `init_ui()` in `main.c` overrides this based on `HAVE_CAPSICUM`.
 
-**`gtk-v2/src/main.c`** — Three changes:
+**`gtk-v2/src/main.c`** - Three changes:
 
 1. Conditional include at the top of the file:
 
@@ -113,7 +113,7 @@ if (sandbox_enabled) {
 }
 ```
 
-After the event loop returns, the loop also breaks if sandboxing was active —
+After the event loop returns, the loop also breaks if sandboxing was active -
 reconnecting would require filesystem access that the sandbox no longer permits:
 
 ```c
@@ -122,7 +122,7 @@ if (sandbox_enabled) {
 }
 ```
 
-**`gtk-v2/src/map.c`** — `map_draw_labels()` previously created and destroyed a
+**`gtk-v2/src/map.c`** - `map_draw_labels()` previously created and destroyed a
 `cairo_font_face_t` on every draw call.  Under Capsicum, the first draw call
 after `cap_enter()` would fail to load the font because font file lookups are
 denied.  The fix promotes the font to a module-level static and provides a
@@ -272,7 +272,7 @@ direct replacement.
 | GtkTable | GtkGrid |
 |----------|---------|
 | `gtk_table_attach(table, child, left, right, top, bottom, xopts, yopts, xpad, ypad)` | `gtk_grid_attach(grid, child, col, row, width, height)` |
-| `gtk_table_resize(table, rows, cols)` | Not needed — GtkGrid auto-resizes |
+| `gtk_table_resize(table, rows, cols)` | Not needed - GtkGrid auto-resizes |
 | `gtk_table_get_size(table, &rows, &cols)` | `gtk_grid_get_child_at(grid, col, row)` loop |
 
 ### Source files changed
@@ -409,7 +409,7 @@ calls `apply_theme_css(theme)` before invoking `*_get_styles()`.
 | `.cf-inv-magical`, `.cf-inv-cursed`, `.cf-inv-unpaid` | `inventory.c` | `color` or `background-color` |
 | `.cf-spell-attuned`, `.cf-spell-repelled`, `.cf-spell-denied`, `.cf-spell-normal` | `spells.c` | `color` or `background-color` |
 
-### Standard theme — `themes/standard.css`
+### Standard theme - `themes/standard.css`
 
 Two pre-existing invalid CSS color names were fixed:
 
@@ -421,7 +421,7 @@ Two pre-existing invalid CSS color names were fixed:
 +.msg_spell_failure { color: grey; }
 ```
 
-### Black theme — `themes/black.css` (new file)
+### Black theme - `themes/black.css` (new file)
 
 A complete dark-mode CSS theme was created.
 
@@ -485,7 +485,7 @@ Three jobs run in parallel:
 | Job | Runner | `SOUND` | `METASERVER2` | Artifact |
 |-----|--------|---------|---------------|----------|
 | Linux Full | `ubuntu-latest` | ON | ON | `crossfire-client-gtk3` |
-| Linux Minimal | `ubuntu-latest` | OFF | OFF | — |
+| Linux Minimal | `ubuntu-latest` | OFF | OFF | - |
 | Windows | `windows-latest` (MSYS2/UCRT64) | ON | ON | `crossfire-client-gtk3.exe` |
 
 ### Linux dependency fix (Ubuntu 24.04 Noble)

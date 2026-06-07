@@ -146,6 +146,13 @@ cp -r ~/crossfire-gtk3-experiment/build-ucrt64/share/. "$DEPLOY/share/"
 # These appear alongside the CSS files in the theme chooser and break theming
 rm -f "$DEPLOY/share/crossfire-client/themes/Black"
 rm -f "$DEPLOY/share/crossfire-client/themes/Standard"
+
+# Remove the sounds submodule's repo metadata
+# The sounds/ directory is a git submodule, so cmake install also copies its
+# .git directory and .gitignore. These add unnecessary bloat to the deploy
+# folder and installer and must not be shipped.
+rm -rf "$DEPLOY/share/crossfire-client/sounds/.git"
+rm -f "$DEPLOY/share/crossfire-client/sounds/.gitignore"
 ```
 
 ### 6. Create the launcher script
@@ -201,6 +208,26 @@ The GTK2-format `Standard` and `Black` files are installed by `cmake -P
 cmake_install.cmake` and must be explicitly removed from the deploy folder
 (see step 5). If present they appear in the theme chooser alongside the CSS
 files and cause colorized text to stop working when selected.
+
+---
+
+## Sounds
+
+The `sounds/` directory is checked out as a git submodule. When `cmake -P
+cmake_install.cmake` installs `share/crossfire-client/sounds/`, it copies
+the submodule's working tree verbatim, including its `.git` directory and
+`.gitignore` file. Neither belongs in a deploy folder or installer - they
+add unnecessary size and ship repository metadata to end users.
+
+Always remove them after copying the share data into the deploy folder
+(see step 5):
+
+```bash
+rm -rf "$DEPLOY/share/crossfire-client/sounds/.git"
+rm -f "$DEPLOY/share/crossfire-client/sounds/.gitignore"
+```
+
+Only `sounds.conf` and the `.wav`/audio asset files should remain.
 
 ---
 

@@ -1,8 +1,8 @@
 # Development Comparison
 
 Comparison of:
-- **Upstream**: <https://sourceforge.net/p/crossfire/crossfire-client/ci/gtk3/tree/> — SourceForge GTK3 port branch, version 1.75.5
-- **Fork**: <https://github.com/tannerrj/windows-client-gtkv3-experiment-sf> — Windows packaging fork, version 1.75.3, branched from upstream at commit `4285a62`
+- **Upstream**: <https://sourceforge.net/p/crossfire/crossfire-client/ci/gtk3/tree/> - SourceForge GTK3 port branch, version 1.75.5
+- **Fork**: <https://github.com/tannerrj/windows-client-gtkv3-experiment-sf> - Windows packaging fork, version 1.75.3, branched from upstream at commit `4285a62`
 
 The fork's goal is a self-contained Windows installer built from the GTK3 port while keeping all changes non-breaking on Linux/macOS.
 
@@ -10,7 +10,7 @@ The fork's goal is a self-contained Windows installer built from the GTK3 port w
 
 ## Major Code Changes
 
-### GTK2 → GTK3 API Migration (both repos, fork has more coverage)
+### GTK2 -> GTK3 API Migration (both repos, fork has more coverage)
 
 Both repos perform the core GTK2-to-GTK3 migration. The fork documents this in detail in `GTK3_PORT_CHANGES.md`. Key changes:
 
@@ -37,21 +37,21 @@ The upstream's `init_theme()` added the CSS provider once at startup and never r
 
 - `apply_theme_css(path)` atomically removes the old provider and installs a new one at `GTK_STYLE_PROVIDER_PRIORITY_USER`.
 - `load_theme()` now calls `apply_theme_css()` before invoking `*_get_styles()`, so the CSS is active when colors are read.
-- Two exported helpers in `info.c` — `get_css_fg_color(class, out)` and `get_css_bg_color(class, out)` — allow any module to read a color from a named CSS class without coupling to `info.c` internals.
+- Two exported helpers in `info.c` - `get_css_fg_color(class, out)` and `get_css_bg_color(class, out)` - allow any module to read a color from a named CSS class without coupling to `info.c` internals.
 - `read_config_dialog()` passes the file chooser result through `g_canonicalize_filename()` before storing it, guaranteeing `client.ini` always records an absolute path. The same applies to the UI layout file chooser. A pre-existing memory leak (when the chosen theme equalled the current theme) was also fixed.
 - `setup_config_dialog()` uses `gtk_file_chooser_set_current_folder()` on Windows (the native file dialog silently ignores `set_filename()`) and `gtk_file_chooser_set_filename()` on other platforms, controlled via `#ifdef _WIN32` / `#else` blocks.
 
 Application-specific CSS classes were added to `standard.css`:
 
 ```
-.cf-stat-normal / .cf-stat-low / .cf-stat-super / .cf-stat-grad-*  → stats.c bar fill colors
-.cf-inv-magical / .cf-inv-cursed / .cf-inv-unpaid                  → inventory.c row highlights
-.cf-spell-attuned / .cf-spell-repelled / .cf-spell-denied          → spells.c row highlights
+.cf-stat-normal / .cf-stat-low / .cf-stat-super / .cf-stat-grad-*  -> stats.c bar fill colors
+.cf-inv-magical / .cf-inv-cursed / .cf-inv-unpaid                  -> inventory.c row highlights
+.cf-spell-attuned / .cf-spell-repelled / .cf-spell-denied          -> spells.c row highlights
 ```
 
 Two invalid GTK2/X11 color names that GTK3's CSS parser silently drops were fixed:
-- `darkorange2` → `darkorange`
-- `grey50` → `grey`
+- `darkorange2` -> `darkorange`
+- `grey50` -> `grey`
 
 ### Windows Runtime Data Path (fork only)
 
@@ -100,7 +100,7 @@ static bool    inv_has_fg[Style_Last];
 static bool    inv_has_bg[Style_Last];
 ```
 
-This allows the Black theme to apply foreground text color (for visibility on dark backgrounds) while the Standard theme applies background highlight color — both through the same code path.
+This allows the Black theme to apply foreground text color (for visibility on dark backgrounds) while the Standard theme applies background highlight color - both through the same code path.
 
 ### One-Shot Guards Removed from `*_get_styles()` (fork)
 
@@ -134,7 +134,7 @@ endif()
 
 ### Executable Renamed (fork)
 
-`crossfire-client-gtk2` → `crossfire-client-gtk3` in `CMakeLists.txt` and all install rules.
+`crossfire-client-gtk2` -> `crossfire-client-gtk3` in `CMakeLists.txt` and all install rules.
 
 ---
 
@@ -158,7 +158,7 @@ The original renderer ran a full tile redraw every call regardless of whether an
 - Only the newly exposed strip at the scroll edge is re-rendered; the rest of the tile surface is reused.
 - Pixel-interpolated lighting modes (`CFG_LT_PIXEL`, `CFG_LT_PIXEL_BEST`) and diagonal scrolls (`dx != 0 && dy != 0`) fall back to 0 (full redraw) as partial updates are incompatible with those modes.
 
-#### Darkness Overlay — Cached Surface and Direct Pixel Writes
+#### Darkness Overlay - Cached Surface and Direct Pixel Writes
 
 `draw_darkness()` previously allocated a new `cairo_surface_t` on every frame and painted each darkness cell with a `cairo_rectangle` / `cairo_fill` pair. The fork replaces this with:
 
@@ -167,11 +167,11 @@ The original renderer ran a full tile redraw every call regardless of whether an
 
 #### Software-Renderer Overhead Reduction (RGB24 + OPERATOR_SOURCE)
 
-The GDK Win32 backend has no GPU acceleration — all Cairo rendering uses a software rasteriser. Three changes reduce unnecessary per-pixel arithmetic:
+The GDK Win32 backend has no GPU acceleration - all Cairo rendering uses a software rasteriser. Three changes reduce unnecessary per-pixel arithmetic:
 
 | Location | Change | Reason |
 |---|---|---|
-| `map_surface` allocation | `CAIRO_FORMAT_ARGB32` → `CAIRO_FORMAT_RGB24` | Composed output is always opaque; RGB24 skips alpha premultiplication in the final blit |
+| `map_surface` allocation | `CAIRO_FORMAT_ARGB32` -> `CAIRO_FORMAT_RGB24` | Composed output is always opaque; RGB24 skips alpha premultiplication in the final blit |
 | Phase-2 black fill in `gtk_map_redraw()` | `CAIRO_OPERATOR_SOURCE` instead of default `OVER` | Equivalent result for solid opaque fill; avoids alpha-blend arithmetic |
 | `map_expose_event()` screen blit | `CAIRO_OPERATOR_SOURCE` instead of default `OVER` | `map_surface` is RGB24 (opaque); SOURCE is correct and faster |
 
@@ -179,15 +179,15 @@ The GDK Win32 backend has no GPU acceleration — all Cairo rendering uses a sof
 
 **Note:** True GPU acceleration would require porting the map renderer to `GtkGLArea` / OpenGL. That is a large architectural change not yet attempted.
 
-#### Darkness Upscale — Manual Bilinear Replaces `CAIRO_FILTER_GOOD/BEST`
+#### Darkness Upscale - Manual Bilinear Replaces `CAIRO_FILTER_GOOD/BEST`
 
 Pixel lighting mode (`CFG_LT_PIXEL`, `CFG_LT_PIXEL_BEST`) previously stored a tile-resolution light map in `lm_surface` and upscaled it to full pixel resolution using `CAIRO_FILTER_GOOD` or `CAIRO_FILTER_BEST`. Those filters invoke Cairo's internal Lanczos/bilinear compositor, which has significant per-pixel overhead on the software rasteriser.
 
 The fork pre-expands the light map to full pixel resolution using manual bilinear interpolation before writing to `lm_surface`. The resulting surface is blitted 1:1 with `CAIRO_FILTER_NEAREST` (no upscaling needed). The inner bilinear loop uses integer `fx`/`fy` counters and a single integer multiply-accumulate, with no floating-point division.
 
-Tile lighting mode is unaffected — it still uses one pixel per tile with `CAIRO_FILTER_NEAREST`.
+Tile lighting mode is unaffected - it still uses one pixel per tile with `CAIRO_FILTER_NEAREST`.
 
-#### Smooth-Tile Inner Loop — Direct Pixel OVER Blend
+#### Smooth-Tile Inner Loop - Direct Pixel OVER Blend
 
 `draw_smooth_pixmap()` is called once per smooth sub-tile during the layer rendering pass. Previously it used `cairo_set_source_surface` + `cairo_rectangle` + `cairo_fill` to copy each sub-tile into `tile_surface`, invoking the full Cairo compositor for every call.
 
@@ -206,7 +206,7 @@ This processes two channels in parallel with one mask and shift each, avoiding p
 
 ### Inventory Renderer
 
-#### Differential Update — No Full Rebuild per Change
+#### Differential Update - No Full Rebuild per Change
 
 `draw_look_list()` and `draw_inv_list()` previously called `gtk_tree_store_clear()` then rebuilt the entire `GtkTreeStore` from scratch on every server update. For large inventories this is O(n) GtkTreeStore operations per update even when only one item changed.
 
@@ -219,9 +219,9 @@ The fork adds `try_diff_update_look()` and `try_diff_update_inv()` helpers that 
 
 Full rebuilds are also forced when a container is open (child rows would need hierarchical handling). In typical play only the last few items change per tick, so the differential path avoids most store operations.
 
-#### Icon-View Event Mask — `GDK_ALL_EVENTS_MASK` Removed
+#### Icon-View Event Mask - `GDK_ALL_EVENTS_MASK` Removed
 
-`draw_inv_table()` previously called `gtk_widget_add_events(cell, GDK_ALL_EVENTS_MASK)` on every cell on every redraw cycle, regardless of whether the cell was newly created. `GDK_ALL_EVENTS_MASK` subscribes to every input event (pointer motion, scroll, crossing, key, focus, …) and is far broader than needed.
+`draw_inv_table()` previously called `gtk_widget_add_events(cell, GDK_ALL_EVENTS_MASK)` on every cell on every redraw cycle, regardless of whether the cell was newly created. `GDK_ALL_EVENTS_MASK` subscribes to every input event (pointer motion, scroll, crossing, key, focus, ...) and is far broader than needed.
 
 The `add_events` call is now in the one-time cell-creation block and uses only `GDK_BUTTON_PRESS_MASK`. Tooltip-related masks (`GDK_POINTER_MOTION_MASK`, `GDK_LEAVE_NOTIFY_MASK`) are added automatically by GTK when `gtk_widget_set_tooltip_text` sets the `has-tooltip` property, so they do not need to be specified manually.
 
@@ -233,13 +233,13 @@ A module-level `static GtkCssProvider *applied_css_provider` is now initialized 
 
 ### Main Loop and Animation
 
-#### Redraw Idle Guard — `g_idle_add` Accumulation Prevented
+#### Redraw Idle Guard - `g_idle_add` Accumulation Prevented
 
-`self_tick()` (the 8 Hz animation timer) previously called `g_idle_add(redraw, NULL)` unconditionally every tick. If GTK was busy and the previous redraw idle had not yet run, a second (and third, …) `redraw` callback was queued on top of it, causing multiple `draw_map()` + `draw_lists()` calls per frame.
+`self_tick()` (the 8 Hz animation timer) previously called `g_idle_add(redraw, NULL)` unconditionally every tick. If GTK was busy and the previous redraw idle had not yet run, a second (and third, ...) `redraw` callback was queued on top of it, causing multiple `draw_map()` + `draw_lists()` calls per frame.
 
 A `static guint redraw_idle_id` is set by `g_idle_add` and cleared to 0 at the start of the `redraw` callback. `self_tick()` only calls `g_idle_add` when `redraw_idle_id == 0`, guaranteeing at most one pending redraw in the idle queue.
 
-#### `mapdata_animation()` — Bounded SYNC Animation Scan
+#### `mapdata_animation()` - Bounded SYNC Animation Scan
 
 `mapdata_animation()` iterated all 2000 `MAXANIM` slots in the `animations[]` array every tick to advance synchronized animation phases, even though most slots are empty (no SYNC speed assigned). In practice only a small fraction of slots are used by any given server.
 
@@ -247,9 +247,9 @@ A `static int anim_sync_max` high-water mark (one past the highest `animations[]
 
 ### Startup and Connection
 
-#### `image_update_download_status` — Spin-Loop Replaced
+#### `image_update_download_status` - Spin-Loop Replaced
 
-`image_update_download_status()` drove the image-download progress bar with `while(gtk_events_pending()) { gtk_main_iteration(); }` — draining the entire GTK event queue on every progress update. If animation timers or incoming network data kept producing events during the download, this loop would spin indefinitely, stalling the download for each call.
+`image_update_download_status()` drove the image-download progress bar with `while(gtk_events_pending()) { gtk_main_iteration(); }` - draining the entire GTK event queue on every progress update. If animation timers or incoming network data kept producing events during the download, this loop would spin indefinitely, stalling the download for each call.
 
 Replaced with a single `g_main_context_iteration(NULL, FALSE)`, which dispatches at most one pending event per call (sufficient to process the queued progress-bar repaint) and returns immediately whether or not any events were pending.
 
@@ -259,9 +259,9 @@ The `CONFIG_FASTTCP` ("Fast TCP") preference was blocked by `#ifndef WIN32` guar
 
 `client.c` now uses `#if defined(HAVE_GIO_GNETWORKING_H)` / `#elif defined(_WIN32)` to dispatch to the correct ABI. `config.c` received the same split and also fixed a pre-existing bug where `csocket.fd` (a `GSocketConnection*`) was passed directly to `setsockopt` instead of extracting the raw fd via `g_socket_connection_get_socket()` + `g_socket_get_fd()`. A missing `#include <gio/gnetworking.h>` (needed for `TCP_NODELAY` on POSIX) was also added to `config.c`.
 
-#### `my_log_handler` — 1-Second Sleep Removed
+#### `my_log_handler` - 1-Second Sleep Removed
 
-`my_log_handler` is a debugging aid (a GLib log handler meant to be set as a breakpoint target when chasing GTK assertion failures). Its body contained `g_usleep(1 * 1e6)` — a 1-second freeze — which would fire for every GTK log message if the handler were ever registered via `g_log_set_handler`. The sleep is removed; the function body is now a no-op so it remains a valid breakpoint target.
+`my_log_handler` is a debugging aid (a GLib log handler meant to be set as a breakpoint target when chasing GTK assertion failures). Its body contained `g_usleep(1 * 1e6)` - a 1-second freeze - which would fire for every GTK log message if the handler were ever registered via `g_log_set_handler`. The sleep is removed; the function body is now a no-op so it remains a valid breakpoint target.
 
 ---
 
@@ -281,11 +281,11 @@ slot for a match with an empty string, found none, and printed a red
 Unable to find match for faceset  on the server
 ```
 
-(Note the double space — the empty `want_faceset` value is interpolated
+(Note the double space - the empty `want_faceset` value is interpolated
 directly into the format string.)
 
 Fix: added `face_info.want_faceset[0] != '\0'` to the guard. An empty string
-is now treated identically to NULL — the block is skipped and the server's
+is now treated identically to NULL - the block is skipped and the server's
 default faceset is used, which is the correct behaviour when the user has
 expressed no preference.
 
@@ -294,8 +294,8 @@ expressed no preference.
 `msgctrl_init()` calls `load_msgctrl_configuration()` at startup to restore
 saved Message Control settings from `config_dir/msgs`. On a fresh install the
 file has never been created; `fopen` returns NULL with `errno == ENOENT`. The
-original code treated this identically to any other `fopen` failure — a
-permissions error, a disk error — and printed a red `MSG_TYPE_CLIENT_ERROR`
+original code treated this identically to any other `fopen` failure - a
+permissions error, a disk error - and printed a red `MSG_TYPE_CLIENT_ERROR`
 message naming the full file path.
 
 Fix: after `fopen` fails, `errno` is checked. If `errno == ENOENT` the
@@ -320,7 +320,7 @@ function returns silently, leaving the defaults set by the preceding
 | NSIS Windows installer | `gtk-v2/win32/client.nsi` | Bundles client, DLLs, GTK runtime, data files, sounds, themes, and layouts; creates Start Menu and Desktop shortcuts |
 | `AGENTS.md` | root | Contributor and AI agent guidance: source tree layout, build conventions, WIN32 coding patterns, known platform issues, pre-commit checklist |
 | `BUILDING-WINDOWS.md` | root | Step-by-step Windows build and packaging guide (MSYS2/UCRT64 + NSIS) |
-| `GTK3_PORT_CHANGES.md` | root | Detailed per-file developer documentation of every GTK2→GTK3 change |
+| `GTK3_PORT_CHANGES.md` | root | Detailed per-file developer documentation of every GTK2->GTK3 change |
 | Capsicum sandbox (FreeBSD) | `CMakeLists.txt`, `config.h.in`, `main.c`, `map.c`, `dialogs.ui` | Restored from upstream commits `16ca75a`, `1e5e75d`, `073c780`; gated on `HAVE_CAPSICUM` so Linux/macOS/Windows builds are unaffected; checkbox greyed out on non-FreeBSD platforms |
 
 ---
@@ -364,7 +364,7 @@ Upstream commits `16ca75a`, `1e5e75d`, and `073c780` (Capsicum sandbox support) 
 
 `inv_pixbufs.h` is a 747-line header of compiled-in pixel data generated from the source XPM files. If the XPM source files change, the header must be manually regenerated with `gdk-pixbuf-csource`. There is no build rule to do this automatically. The compiled-in data can silently drift from the source pixmaps.
 
-### One-Shot Guards Removed — Potential Use-After-Free
+### One-Shot Guards Removed - Potential Use-After-Free
 
 `stats_get_styles()` now frees and reallocates `bar_colors` on every call. If `load_theme()` is triggered during a draw cycle that holds a pointer to the old `bar_colors` array, the draw code accesses freed memory. The original one-shot guards existed partly to prevent this re-entrancy.
 
