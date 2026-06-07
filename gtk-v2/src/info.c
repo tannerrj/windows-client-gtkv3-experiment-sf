@@ -1499,7 +1499,7 @@ void save_msgctrl_configuration(void)
 void load_msgctrl_configuration(void)
 {
     char  pathbuf[MAX_BUF];             /* Buffer for a save file path name */
-    char  textbuf[MAX_BUF];             /* Buffer for input from save file  */
+    char  textbuf[MAX_BUF * 2];         /* Buffer for input from save file  */
     char  recordtype;                   /* Savefile data entry type found   */
     char* cptr;                         /* Pointer used when reading data   */
     FILE* fptr;                         /* Message Control savefile pointer */
