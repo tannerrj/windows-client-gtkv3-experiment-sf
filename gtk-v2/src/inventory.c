@@ -850,7 +850,7 @@ static void add_object_to_store(item *it, GtkTreeStore *store,
     } else {
         snprintf(buf, sizeof (buf), "%6.1f", it->nrof * it->weight);
     }
-    snprintf(buf1, 255, "%s %s", it->d_name, it->flags);
+    snprintf(buf1, sizeof(buf1), "%s %s", it->d_name, it->flags);
     if (color) {
         int style_idx = get_row_style(it);
         if (style_idx >= 0) {
