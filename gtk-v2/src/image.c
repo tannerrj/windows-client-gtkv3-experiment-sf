@@ -382,10 +382,17 @@ void init_image_cache_data(void)
 #include "../../pixmaps/question.xpm"
 #endif
     pixmaps[0] = g_new(PixmapInfo, 1);
+#ifdef _WIN32
     pixmaps[0]->icon_image =
         gdk_pixbuf_new_from_inline(-1, question_inline, FALSE, NULL);
     pixmaps[0]->full_icon_image =
         gdk_pixbuf_new_from_inline(-1, question_inline, FALSE, NULL);
+#else
+    pixmaps[0]->icon_image =
+        gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
+    pixmaps[0]->full_icon_image =
+        gdk_pixbuf_new_from_xpm_data((const gchar **)question_xpm);
+#endif
     pixmaps[0]->map_image =  pixmaps[0]->icon_image;
 
     pixmaps[0]->icon_width = pixmaps[0]->icon_height = pixmaps[0]->full_icon_width = pixmaps[0]->full_icon_height = map_image_size;
