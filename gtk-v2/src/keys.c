@@ -1269,7 +1269,7 @@ static void save_individual_key(FILE *fp, struct keybind *kb, KeyCode kc) {
  * reported to the message pane.
  */
 static void save_keys(void) {
-    char buf[MAX_BUF], buf2[MAX_BUF];
+    char buf[MAX_BUF], buf2[MAX_BUF + 64];
     int i;
     FILE *fp;
 
