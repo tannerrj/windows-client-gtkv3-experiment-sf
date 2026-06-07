@@ -83,9 +83,9 @@ full Windows-style path:
 
 ```python
 # Correct
-open('C:/msys64/home/leaf/client/windows-client-gtkv3-experiment-sf/gtk-v2/src/config.c')
+open('C:/msys64/home/<username>/client/windows-client-gtkv3-experiment-sf/gtk-v2/src/config.c')
 
-# Wrong - Python resolves ~ to C:\Users\leaf, not the MSYS2 home
+# Wrong - Python resolves ~ to C:\Users\<username>, not the MSYS2 home
 open('~/client/...')
 ```
 
