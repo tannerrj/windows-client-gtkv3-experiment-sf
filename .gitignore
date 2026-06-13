@@ -66,6 +66,7 @@
 Makefile
 Makefile.in
 build*/
+deploy-test/
 common/config.h.in
 cscope.*
 sounds
