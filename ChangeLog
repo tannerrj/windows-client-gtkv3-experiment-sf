@@ -1,3 +1,44 @@
+Snapshot gc695fc8
+==================
+2026-06-08
+
+**Merge of performance improvements into main**
+
+- Fast-forward merged gtk3-client-performance-improvements into the gtk3
+  branch, bringing all performance work below into main
+
+**Build fixes**
+
+- Fixed -Werror=format-truncation build failures in gtk-v2/src/keys.c
+  (save_keys, keybind_overwrite_confirm), gtk-v2/src/inventory.c
+  (add_object_to_store, draw_inv_table), and gtk-v2/src/info.c
+  (save_msgctrl_configuration, load_msgctrl_configuration) by enlarging
+  buffers and using sizeof() instead of hardcoded lengths in snprintf
+- Fixed Linux build break in gtk-v2/src/image.c: init_image_cache_data()
+  now wraps pixbuf creation in #ifdef _WIN32 / #else to match the
+  conditional question_inline.h / question.xpm #include
+
+**Documentation and tooling**
+
+- Added BRANCH_SUMMARY.md covering all changes since the fork point
+- Added GTK2->GTK3 migration rationale and performance summary to README
+- Documented .git/.gitignore removal for the sounds submodule in
+  BUILDING-WINDOWS.md to avoid shipping repository metadata in the deploy
+  folder and installer
+- Normalized all .md files to LF line endings and ASCII-only characters;
+  added .gitattributes to enforce LF for markdown files
+- Replaced hardcoded "leaf" username in AGENTS.md Python path examples
+  with a generic <username> placeholder
+
+**Installer**
+
+- NSIS installer output renamed to
+  Crossfire-GTK3-Client-<7-char-git-hash>-Setup.exe (for example
+  Crossfire-GTK3-Client-gc695fc8-Setup.exe), using the GITVERSION define
+  computed from `git rev-parse --short=7 HEAD`
+- Verified snapshot installer builds cleanly, passes the 13-check smoke
+  test, and launches successfully on a clean Windows 10 system
+
 1.75.3-gtk3-perf-1
 ==================
 2026-05-22
